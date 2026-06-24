@@ -1,0 +1,32 @@
+{
+  "name": "knu-notice-board",
+  "version": "0.1.0",
+  "private": true,
+  "description": "경북대·한국장학재단 공지 통합 알리미 — 여러 게시판을 한 화면에서 최신순으로",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:init": "tsx src/scraper/db-init.ts",
+    "scrape": "tsx src/scraper/scrape.ts --all",
+    "scrape:cse": "tsx src/scraper/scrape.ts --source cse"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "iconv-lite": "^0.6.3",
+    "next": "^15.1.6",
+    "postgres": "^3.4.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

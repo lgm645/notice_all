@@ -1,0 +1,279 @@
+:root {
+  --bg: #f7f7f8;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --accent: #c8102e; /* 경북대 레드 */
+  --accent-soft: #fdeaed;
+  --new: #1d9e75;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+    "Malgun Gothic", Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+/* ── header ── */
+.site-head h1 {
+  font-size: 1.5rem;
+  margin: 0 0 4px;
+}
+.site-head .beta {
+  color: var(--accent);
+}
+.site-head .sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.new-banner {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  min-height: 1.2em;
+}
+.new-banner.has-new {
+  color: var(--new);
+  font-weight: 600;
+}
+
+/* ── filters ── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+  align-items: center;
+}
+.filters input[type="search"] {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.filters input,
+.filters select,
+.filters button {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.filters button {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  cursor: pointer;
+}
+.filters .reset {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+/* ── feed ── */
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.card-top .src {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.card-top .cat {
+  font-size: 0.72rem;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.card-top .pin {
+  font-size: 0.7rem;
+  color: #fff;
+  background: var(--muted);
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+/* NEW 배지: 기본 숨김, .is-new 일 때만 노출 */
+.card-top .new-badge {
+  display: none;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--new);
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.card.is-new .new-badge {
+  display: inline;
+}
+.card.is-new {
+  border-color: var(--new);
+}
+
+.card .title {
+  display: inline-block;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  word-break: keep-all;
+}
+.card .title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.card .clip {
+  margin-left: 6px;
+  font-size: 0.85rem;
+}
+.card .meta {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* ── pager ── */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+.pager a,
+.pager .disabled {
+  font-size: 0.9rem;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  text-decoration: none;
+  color: var(--text);
+}
+.pager a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pager .disabled {
+  opacity: 0.4;
+}
+.pager .pageinfo {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ── empty / error ── */
+.empty {
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 28px 18px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty.error {
+  text-align: left;
+  border-color: var(--accent);
+}
+.empty pre {
+  white-space: pre-wrap;
+  background: #f3f4f6;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #b91c1c;
+}
+code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 0.85em;
+}
+
+/* ── footer ── */
+.site-foot {
+  margin-top: 24px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+.site-foot .muted {
+  opacity: 0.7;
+}
+
+/* ── mobile ── */
+@media (max-width: 480px) {
+  .site-head h1 {
+    font-size: 1.3rem;
+  }
+  .filters button,
+  .filters .reset {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --card: #181b21;
+    --text: #e7e9ee;
+    --muted: #9aa1ad;
+    --line: #2a2e37;
+    --accent: #ff6b81;
+    --accent-soft: #2a1419;
+  }
+  .empty pre {
+    background: #20242c;
+    color: #ff9aa6;
+  }
+  code {
+    background: #20242c;
+  }
+}

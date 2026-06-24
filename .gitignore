@@ -1,0 +1,22 @@
+# deps
+/node_modules
+
+# next
+/.next
+/out
+
+# env (로컬 비밀값)
+.env
+.env.local
+.env*.local
+
+# PGlite 로컬 DB 데이터
+/.pgdata
+
+# 정찰용 임시 HTML
+/.recon
+
+# logs / os
+*.log
+.DS_Store
+Thumbs.db

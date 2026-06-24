@@ -1,0 +1,39 @@
+name: scrape
+
+# 주기 수집: 6시간마다 (정중한 빈도). 수동 실행도 가능.
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      # 실제 Postgres(Supabase) 에 수집. 저장소 Secret 에 DATABASE_URL 등록 필요.
+      - name: db:init (idempotent)
+        env:
+          DB_DRIVER: postgres
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:init
+
+      - name: scrape all sources
+        env:
+          DB_DRIVER: postgres
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SCRAPER_CONTACT: ${{ secrets.SCRAPER_CONTACT }}
+        run: npm run scrape
