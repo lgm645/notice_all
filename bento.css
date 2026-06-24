@@ -1,0 +1,721 @@
+/* ======================================================================
+   2) BENTO — 벤토 대시보드
+   부드러운 중립 서피스 + 인디고/바이올렛 비비드 액센트 · 둥근 타일 그리드
+   소스별 색조(--hue) 컬러코딩 · 통계 스트립 · 호버 리프트 · 수동 다크토글
+   ====================================================================== */
+[data-design="bento"] {
+  /* 라이트 기본값 */
+  --bn-bg: #eef0f6;
+  --bn-bg2: #e6e9f2;
+  --bn-surface: #ffffff;
+  --bn-surface2: #f6f7fb;
+  --bn-ink: #1b1d29;
+  --bn-ink2: #4a4e63;
+  --bn-muted: #828699;
+  --bn-line: #e2e5ef;
+  --bn-line2: #d3d7e6;
+  --bn-accent: #6d5ef0;
+  --bn-accent-ink: #ffffff;
+  --bn-accent-soft: #ece9ff;
+  --bn-accent-2: #9a8cff;
+  --bn-shadow: 18px 18px 40px rgba(35, 38, 66, 0.1);
+  --bn-shadow-h: 22px 26px 56px rgba(57, 47, 150, 0.22);
+  --bn-radius: 22px;
+
+  background:
+    radial-gradient(1200px 600px at 12% -8%, var(--bn-accent-soft), transparent 60%),
+    var(--bn-bg);
+  color: var(--bn-ink);
+  font-family: "Pretendard", "Gothic A1", system-ui, sans-serif;
+  padding: clamp(16px, 3.5vw, 40px) clamp(14px, 4vw, 52px) 72px;
+  max-width: 1340px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 헤더 ── */
+[data-design="bento"] .bn-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+[data-design="bento"] .bn-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+[data-design="bento"] .bn-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--bn-accent), var(--bn-accent-2));
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 20px rgba(109, 94, 240, 0.4);
+  flex: none;
+}
+[data-design="bento"] .bn-logo-grid {
+  width: 22px;
+  height: 22px;
+  display: block;
+  border-radius: 5px;
+  background-image:
+    linear-gradient(#fff 0 0), linear-gradient(#fff 0 0), linear-gradient(#fff 0 0),
+    linear-gradient(#fff 0 0);
+  background-repeat: no-repeat;
+  background-size: 13px 8px, 6px 8px, 6px 8px, 13px 8px;
+  background-position:
+    0 0,
+    0 11px,
+    16px 11px,
+    9px 14px;
+  opacity: 0.96;
+}
+[data-design="bento"] .bn-title {
+  font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.1;
+}
+[data-design="bento"] .bn-sub {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: var(--bn-muted);
+  font-weight: 500;
+}
+[data-design="bento"] .bn-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── 새 글 배너(기능 슬롯) ── */
+[data-design="bento"] #new-banner {
+  margin: 0 0 18px;
+  min-height: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--bn-ink2);
+  padding: 0 4px;
+  transition: all 0.25s ease;
+}
+[data-design="bento"] #new-banner:not(:empty) {
+  min-height: 1.2em;
+  padding: 11px 16px;
+  border-radius: 14px;
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line);
+  box-shadow: var(--bn-shadow);
+}
+[data-design="bento"] #new-banner.has-new {
+  background: linear-gradient(120deg, var(--bn-accent), var(--bn-accent-2));
+  color: var(--bn-accent-ink);
+  border-color: transparent;
+  box-shadow: 0 12px 30px rgba(109, 94, 240, 0.35);
+}
+[data-design="bento"] #new-banner.has-new::before {
+  content: "● ";
+  color: #fff;
+}
+
+/* ── 요약 스탯 타일 ── */
+[data-design="bento"] .bn-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+[data-design="bento"] .bn-stat {
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line);
+  border-radius: var(--bn-radius);
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: var(--bn-shadow);
+  position: relative;
+  overflow: hidden;
+}
+[data-design="bento"] .bn-stat-k {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--bn-muted);
+}
+[data-design="bento"] .bn-stat-v {
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+[data-design="bento"] .bn-stat-of {
+  font-size: 0.5em;
+  color: var(--bn-muted);
+  font-weight: 600;
+}
+[data-design="bento"] .bn-stat-u {
+  font-size: 0.74rem;
+  color: var(--bn-muted);
+  font-weight: 500;
+}
+[data-design="bento"] .bn-stat--accent {
+  background: linear-gradient(150deg, var(--bn-accent), var(--bn-accent-2));
+  border-color: transparent;
+  color: var(--bn-accent-ink);
+  box-shadow: 0 14px 34px rgba(109, 94, 240, 0.4);
+}
+[data-design="bento"] .bn-stat--accent .bn-stat-k,
+[data-design="bento"] .bn-stat--accent .bn-stat-u,
+[data-design="bento"] .bn-stat--accent .bn-stat-of {
+  color: rgba(255, 255, 255, 0.82);
+}
+[data-design="bento"] .bn-stat--accent::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -34px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ── 필터 ── */
+[data-design="bento"] .bn-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line);
+  border-radius: var(--bn-radius);
+  padding: 12px;
+  margin-bottom: 20px;
+  box-shadow: var(--bn-shadow);
+}
+[data-design="bento"] .bn-search,
+[data-design="bento"] .bn-select {
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--bn-ink);
+  background: var(--bn-surface2);
+  border: 1px solid var(--bn-line2);
+  border-radius: 12px;
+  padding: 10px 13px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+[data-design="bento"] .bn-search {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+[data-design="bento"] .bn-search::placeholder {
+  color: var(--bn-muted);
+}
+[data-design="bento"] .bn-select {
+  flex: 0 1 auto;
+  cursor: pointer;
+}
+[data-design="bento"] .bn-search:focus,
+[data-design="bento"] .bn-select:focus {
+  outline: none;
+  border-color: var(--bn-accent);
+  box-shadow: 0 0 0 3px var(--bn-accent-soft);
+}
+[data-design="bento"] .bn-go {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--bn-accent-ink);
+  background: var(--bn-accent);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+[data-design="bento"] .bn-go:hover {
+  background: #5d4ee6;
+  box-shadow: 0 8px 18px rgba(109, 94, 240, 0.4);
+  transform: translateY(-1px);
+}
+[data-design="bento"] .bn-reset {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--bn-muted);
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+[data-design="bento"] .bn-reset:hover {
+  color: var(--bn-accent);
+  text-decoration: underline;
+}
+
+/* ── 벤토 그리드 ── */
+[data-design="bento"] .bn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 14px;
+}
+[data-design="bento"] .bn-tile {
+  /* --hue 는 인라인으로 소스별 주입 */
+  --c: hsl(var(--hue) 70% 52%);
+  --c-soft: hsl(var(--hue) 80% 96%);
+  --c-ink: hsl(var(--hue) 55% 32%);
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line);
+  border-radius: var(--bn-radius);
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--bn-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+[data-design="bento"] .bn-tile::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--c);
+  opacity: 0.9;
+}
+[data-design="bento"] .bn-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--bn-shadow-h);
+  border-color: var(--c);
+}
+[data-design="bento"] .bn-tile--wide {
+  grid-column: span 2;
+}
+[data-design="bento"] .bn-tile--fixed {
+  background:
+    linear-gradient(180deg, var(--bn-accent-soft), transparent 60%), var(--bn-surface);
+  border-color: var(--bn-accent-2);
+}
+
+[data-design="bento"] .bn-tile-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+[data-design="bento"] .bn-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--c-ink);
+  background: var(--c-soft);
+  border: 1px solid hsl(var(--hue) 60% 86%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+[data-design="bento"] .bn-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--bn-ink2);
+  background: var(--bn-surface2);
+  border: 1px solid var(--bn-line2);
+  padding: 3px 9px;
+  border-radius: 8px;
+}
+[data-design="bento"] .bn-spacer {
+  flex: 1 1 auto;
+}
+[data-design="bento"] .bn-badge {
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+[data-design="bento"] .bn-badge--fixed {
+  color: var(--bn-accent-ink);
+  background: var(--bn-accent);
+  letter-spacing: 0.03em;
+}
+[data-design="bento"] .bn-badge--clip {
+  background: var(--bn-surface2);
+  border: 1px solid var(--bn-line2);
+}
+
+/* NEW 마커: 기본 숨김 → 컨트롤러가 .is-new 추가 시 노출 */
+[data-design="bento"] .bn-new {
+  display: none;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--bn-accent-ink);
+  background: linear-gradient(120deg, #ff5d8f, var(--bn-accent));
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+[data-design="bento"] .bn-tile.is-new {
+  border-color: var(--bn-accent);
+  box-shadow: 0 0 0 2px var(--bn-accent-soft), var(--bn-shadow);
+}
+[data-design="bento"] .bn-tile.is-new .bn-new {
+  display: inline-block;
+}
+
+[data-design="bento"] .bn-tile-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.42;
+  color: var(--bn-ink);
+  text-decoration: none;
+  word-break: keep-all;
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+[data-design="bento"] .bn-tile--wide .bn-tile-title {
+  font-size: 1.12rem;
+  -webkit-line-clamp: 2;
+}
+[data-design="bento"] .bn-tile-title:hover {
+  color: var(--bn-accent);
+}
+
+[data-design="bento"] .bn-tile-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  color: var(--bn-muted);
+  margin-top: auto;
+  padding-top: 4px;
+}
+[data-design="bento"] .bn-date {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  color: var(--bn-ink2);
+}
+[data-design="bento"] .bn-author {
+  position: relative;
+  padding-left: 12px;
+}
+[data-design="bento"] .bn-author::before {
+  content: "·";
+  position: absolute;
+  left: 3px;
+}
+[data-design="bento"] .bn-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+[data-design="bento"] .bn-views-bar {
+  width: 40px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bn-surface2);
+  border: 1px solid var(--bn-line2);
+  overflow: hidden;
+  display: inline-block;
+}
+[data-design="bento"] .bn-views-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--bn-accent-2), var(--bn-accent));
+  min-width: 2px;
+}
+[data-design="bento"] .bn-views-n {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--bn-ink2);
+  white-space: nowrap;
+}
+
+/* ── 상태(에러/빈) ── */
+[data-design="bento"] .bn-state {
+  text-align: center;
+  background: var(--bn-surface);
+  border: 1px dashed var(--bn-line2);
+  border-radius: var(--bn-radius);
+  padding: 56px 28px;
+  box-shadow: var(--bn-shadow);
+}
+[data-design="bento"] .bn-state-ico {
+  font-size: 2.4rem;
+  color: var(--bn-accent);
+  display: block;
+  margin-bottom: 10px;
+}
+[data-design="bento"] .bn-state--err .bn-state-ico {
+  color: #e0567a;
+}
+[data-design="bento"] .bn-state-t {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+[data-design="bento"] .bn-state-d {
+  font-size: 0.85rem;
+  color: var(--bn-muted);
+  margin: 0;
+  word-break: break-word;
+}
+[data-design="bento"] .bn-state-reset {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bn-accent-ink);
+  background: var(--bn-accent);
+  text-decoration: none;
+  padding: 9px 20px;
+  border-radius: 12px;
+}
+[data-design="bento"] .bn-state-reset:hover {
+  background: #5d4ee6;
+}
+
+/* ── 페이지네이션 ── */
+[data-design="bento"] .bn-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 26px;
+}
+[data-design="bento"] .bn-pager-btn {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--bn-ink);
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line);
+  border-radius: 12px;
+  padding: 10px 18px;
+  text-decoration: none;
+  box-shadow: var(--bn-shadow);
+  transition: transform 0.12s ease, border-color 0.18s ease, color 0.18s ease;
+}
+[data-design="bento"] .bn-pager-btn:hover:not(.bn-off) {
+  color: var(--bn-accent);
+  border-color: var(--bn-accent);
+  transform: translateY(-2px);
+}
+[data-design="bento"] .bn-pager-btn.bn-off {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+[data-design="bento"] .bn-pager-now {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  color: var(--bn-muted);
+}
+[data-design="bento"] .bn-pager-now strong {
+  color: var(--bn-accent);
+  font-size: 1.1rem;
+}
+
+/* ── 푸터 ── */
+[data-design="bento"] .bn-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  padding-top: 18px;
+  border-top: 1px solid var(--bn-line);
+  font-size: 0.8rem;
+  color: var(--bn-muted);
+}
+[data-design="bento"] .bn-foot-meta {
+  font-family: "JetBrains Mono", monospace;
+}
+[data-design="bento"] .bn-rss {
+  font-weight: 700;
+  color: var(--bn-accent);
+  text-decoration: none;
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--bn-accent);
+}
+[data-design="bento"] .bn-rss:hover {
+  background: var(--bn-accent);
+  color: var(--bn-accent-ink);
+}
+
+/* ── 새로고침 버튼(기능 컴포넌트 재스타일) ── */
+[data-design="bento"] .refresh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+[data-design="bento"] .refresh-btn {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--bn-ink);
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line2);
+  border-radius: 12px;
+  padding: 9px 16px;
+  cursor: pointer;
+  box-shadow: var(--bn-shadow);
+  transition: transform 0.12s ease, border-color 0.18s ease, color 0.18s ease;
+}
+[data-design="bento"] .refresh-btn:hover:not(:disabled) {
+  color: var(--bn-accent);
+  border-color: var(--bn-accent);
+  transform: translateY(-1px);
+}
+[data-design="bento"] .refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+[data-design="bento"] .refresh-meta {
+  font-size: 0.76rem;
+  color: var(--bn-muted);
+  font-weight: 500;
+}
+
+/* ── 다크 토글 ── */
+[data-design="bento"] .dark-toggle {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--bn-ink);
+  background: var(--bn-surface);
+  border: 1px solid var(--bn-line2);
+  border-radius: 12px;
+  padding: 9px 14px;
+  cursor: pointer;
+  box-shadow: var(--bn-shadow);
+  transition: transform 0.12s ease, border-color 0.18s ease;
+}
+[data-design="bento"] .dark-toggle:hover {
+  border-color: var(--bn-accent);
+  transform: translateY(-1px);
+}
+
+/* ── 반응형 ── */
+@media (max-width: 880px) {
+  [data-design="bento"] .bn-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  [data-design="bento"] .bn-grid {
+    grid-template-columns: 1fr;
+  }
+  [data-design="bento"] .bn-tile--wide {
+    grid-column: span 1;
+  }
+  [data-design="bento"] .bn-top-actions {
+    width: 100%;
+  }
+}
+@media (max-width: 420px) {
+  [data-design="bento"] .bn-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── 다크: (2) 자동(prefers) ── */
+@media (prefers-color-scheme: dark) {
+  [data-design="bento"] {
+    --bn-bg: #0e0f1a;
+    --bn-bg2: #14152340;
+    --bn-surface: #1a1c2b;
+    --bn-surface2: #23263a;
+    --bn-ink: #eef0fa;
+    --bn-ink2: #b9bdd4;
+    --bn-muted: #8a8fa8;
+    --bn-line: #2a2d42;
+    --bn-line2: #353954;
+    --bn-accent: #8576ff;
+    --bn-accent-ink: #ffffff;
+    --bn-accent-soft: #26244a;
+    --bn-accent-2: #b3a6ff;
+    --bn-shadow: 18px 18px 44px rgba(0, 0, 0, 0.42);
+    --bn-shadow-h: 22px 28px 60px rgba(0, 0, 0, 0.6);
+  }
+  [data-design="bento"] .bn-tile {
+    --c: hsl(var(--hue) 75% 66%);
+    --c-soft: hsl(var(--hue) 38% 20%);
+    --c-ink: hsl(var(--hue) 80% 80%);
+  }
+  [data-design="bento"] .bn-pill {
+    border-color: hsl(var(--hue) 35% 30%);
+  }
+}
+
+/* ── 다크: (3) 수동 토글 override (자동보다 우선) ── */
+html[data-theme="dark"] [data-design="bento"] {
+  --bn-bg: #0e0f1a;
+  --bn-bg2: #14152340;
+  --bn-surface: #1a1c2b;
+  --bn-surface2: #23263a;
+  --bn-ink: #eef0fa;
+  --bn-ink2: #b9bdd4;
+  --bn-muted: #8a8fa8;
+  --bn-line: #2a2d42;
+  --bn-line2: #353954;
+  --bn-accent: #8576ff;
+  --bn-accent-ink: #ffffff;
+  --bn-accent-soft: #26244a;
+  --bn-accent-2: #b3a6ff;
+  --bn-shadow: 18px 18px 44px rgba(0, 0, 0, 0.42);
+  --bn-shadow-h: 22px 28px 60px rgba(0, 0, 0, 0.6);
+}
+html[data-theme="dark"] [data-design="bento"] .bn-tile {
+  --c: hsl(var(--hue) 75% 66%);
+  --c-soft: hsl(var(--hue) 38% 20%);
+  --c-ink: hsl(var(--hue) 80% 80%);
+}
+html[data-theme="dark"] [data-design="bento"] .bn-pill {
+  border-color: hsl(var(--hue) 35% 30%);
+}
+
+/* ── 라이트: (3) 수동 토글 override (자동 다크를 되돌림) ── */
+html[data-theme="light"] [data-design="bento"] {
+  --bn-bg: #eef0f6;
+  --bn-bg2: #e6e9f2;
+  --bn-surface: #ffffff;
+  --bn-surface2: #f6f7fb;
+  --bn-ink: #1b1d29;
+  --bn-ink2: #4a4e63;
+  --bn-muted: #828699;
+  --bn-line: #e2e5ef;
+  --bn-line2: #d3d7e6;
+  --bn-accent: #6d5ef0;
+  --bn-accent-ink: #ffffff;
+  --bn-accent-soft: #ece9ff;
+  --bn-accent-2: #9a8cff;
+  --bn-shadow: 18px 18px 40px rgba(35, 38, 66, 0.1);
+  --bn-shadow-h: 22px 26px 56px rgba(57, 47, 150, 0.22);
+}
+html[data-theme="light"] [data-design="bento"] .bn-tile {
+  --c: hsl(var(--hue) 70% 52%);
+  --c-soft: hsl(var(--hue) 80% 96%);
+  --c-ink: hsl(var(--hue) 55% 32%);
+}
+html[data-theme="light"] [data-design="bento"] .bn-pill {
+  border-color: hsl(var(--hue) 60% 86%);
+}
