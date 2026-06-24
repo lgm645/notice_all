@@ -46,7 +46,7 @@ git push -u origin main
    | `FEED_REVALIDATE` | `60` (선택, 피드 캐시 초) |
 3. **Deploy** → `https://<프로젝트>.vercel.app` 공개. (웹은 DB를 읽기만 하므로 수집기와 독립)
 
-## 4) GitHub Actions — 주기 수집 (6시간마다)
+## 4) GitHub Actions — 주기 수집 (1시간마다)
 
 `.github/workflows/scrape.yml` 가 이미 있다.
 저장소 **Settings → Secrets and variables → Actions → New repository secret**:

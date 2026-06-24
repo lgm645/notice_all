@@ -1,9 +1,9 @@
 name: scrape
 
-# 주기 수집: 6시간마다 (정중한 빈도). 수동 실행도 가능.
+# 주기 수집: 1시간마다 (매시 정각). 수동 실행도 가능.
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 concurrency:
