@@ -5,6 +5,7 @@ import {
 } from "../lib/queries";
 import Filters from "./components/Filters";
 import NewSinceController from "./components/NewSinceController";
+import RefreshButton from "./components/RefreshButton";
 
 export const dynamic = "force-dynamic"; // 항상 DB 에서 최신 읽기
 export const runtime = "nodejs";
@@ -70,6 +71,7 @@ export default async function Page({
           경북대 공지 통합 <span className="beta">알리미</span>
         </h1>
         <p className="sub">여러 게시판의 공지를 한 곳에서 · 최신순</p>
+        <RefreshButton />
         <div id="new-banner" className="new-banner" aria-live="polite" />
       </header>
 

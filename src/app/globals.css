@@ -58,6 +58,36 @@ body {
   font-weight: 600;
 }
 
+/* ── refresh ── */
+.refresh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.refresh-btn {
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+}
+.refresh-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.refresh-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.refresh-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 /* ── filters ── */
 .filters {
   display: flex;

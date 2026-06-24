@@ -26,3 +26,10 @@ create index if not exists notices_category_idx  on notices (category);
 
 -- 간단 키워드 검색용 (Phase 1 은 ILIKE 사용, 추후 tsvector 로 확장 가능)
 create index if not exists notices_title_trgm_idx on notices (lower(title));
+
+-- 앱 메타(마지막 새로고침 시각 등) — 사용자 수동 새로고침 쿨다운에 사용
+create table if not exists app_meta (
+  key   text primary key,
+  value timestamptz not null default now()
+);
+insert into app_meta (key, value) values ('last_refresh', 'epoch') on conflict (key) do nothing;

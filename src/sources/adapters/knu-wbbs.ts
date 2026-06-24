@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
 import type { NoticeItem, SourceAdapter, SourceConfig } from "../../lib/types";
-import { cleanText, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
+import { cleanText, normDate, parseIntSafe, toKstIso } from "../../lib/normalize";
 
 // ── KNU-WBBS 어댑터 ───────────────────────────────────────────────
 // 대상: 경북대 공지(knu-main), 학사공지(knu-haksa). www.knu.ac.kr/wbbs *.action
@@ -35,20 +35,18 @@ function parseRow($: CheerioAPI, tr: AnyNode, source: SourceConfig): NoticeItem 
   if (!title) return null;
 
   let externalId: string;
-  let url: string;
   const docNo = /btin\.doc_no=(\d+)/.exec(href)?.[1];
   if (docNo) {
     externalId = docNo;
-    url = resolveUrl(href, source.listUrl);
   } else {
     const bltn = doReadArg(onclick || href, 2);
-    if (!bltn) return null;
+    if (!bltn || !/^\d+$/.test(bltn)) return null;
     externalId = bltn;
-    const tmpl = String(source.options?.detailTemplate ?? "");
-    url = tmpl
-      ? resolveUrl(tmpl.replace("{id}", bltn), source.listUrl)
-      : resolveUrl(href, source.listUrl);
   }
+  // KNU wbbs 상세(viewBtin/stdViewBtin.action)는 세션+JS POST 흐름이라
+  // 외부에서 콜드 직링크하면 error_400. 글 링크는 콜드로도 열리는 목록 페이지로 연결한다
+  // (수집 대상이 1페이지 최신글이라 목록 상단에 보임). 중복키는 doc_no/bltn_no 유지.
+  const url = source.listUrl;
 
   const dateText = cleanText($tr.find("td.date").first().text());
   const author = cleanText($tr.find("td.writer").first().text()) || null;

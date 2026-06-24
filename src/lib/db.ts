@@ -185,6 +185,62 @@ export async function countNotices(f: NoticeFilter = {}): Promise<number> {
   return Number(rows[0]?.n ?? 0);
 }
 
+// ── 앱 메타 / 수동 새로고침 쿨다운 ───────────────────────────────
+let metaEnsured = false;
+async function ensureMeta(d: Driver): Promise<void> {
+  if (metaEnsured) return;
+  await d.exec(
+    `create table if not exists app_meta (key text primary key, value timestamptz not null default now());
+     insert into app_meta (key, value) values ('last_refresh', 'epoch') on conflict (key) do nothing;`,
+  );
+  metaEnsured = true;
+}
+
+export async function getLastRefreshMs(): Promise<number | null> {
+  const d = await driver();
+  await ensureMeta(d);
+  const rows = await d.query(
+    `select (extract(epoch from value) * 1000)::float8 as ms from app_meta where key = 'last_refresh'`,
+  );
+  const ms = rows[0]?.ms;
+  return ms == null ? null : Number(ms);
+}
+
+export async function touchLastRefresh(): Promise<void> {
+  const d = await driver();
+  await ensureMeta(d);
+  await d.query(
+    `insert into app_meta (key, value) values ('last_refresh', now())
+     on conflict (key) do update set value = now()`,
+  );
+}
+
+// 쿨다운이 지났을 때만 last_refresh 를 now() 로 원자적 갱신(동시 클릭/중복 수집 방지).
+// 갱신에 성공하면 ok=true(이 호출이 새로고침 슬롯을 차지). 아니면 남은 초를 반환.
+export async function claimRefresh(
+  cooldownMin: number,
+): Promise<{ ok: boolean; lastMs: number; remainingSec: number }> {
+  const d = await driver();
+  await ensureMeta(d);
+  const claimed = await d.query(
+    `update app_meta set value = now()
+     where key = 'last_refresh' and value <= now() - ($1::int * interval '1 minute')
+     returning (extract(epoch from value) * 1000)::float8 as ms`,
+    [cooldownMin],
+  );
+  if (claimed.length) return { ok: true, lastMs: Number(claimed[0].ms), remainingSec: 0 };
+
+  const cur = await d.query(
+    `select (extract(epoch from value) * 1000)::float8 as ms,
+            (extract(epoch from (value + ($1::int * interval '1 minute') - now())))::float8 as rem
+     from app_meta where key = 'last_refresh'`,
+    [cooldownMin],
+  );
+  const lastMs = cur[0] ? Number(cur[0].ms) : 0;
+  const remainingSec = cur[0] ? Math.max(0, Math.ceil(Number(cur[0].rem))) : 0;
+  return { ok: false, lastMs, remainingSec };
+}
+
 export async function getFacets(): Promise<{ sources: Row[]; categories: Row[] }> {
   const d = await driver();
   const [sources, categories] = await Promise.all([
