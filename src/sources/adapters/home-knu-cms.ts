@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
 import type { NoticeItem, SourceAdapter, SourceConfig } from "../../lib/types";
-import { cleanText, normDate, parseIntSafe, toKstIso } from "../../lib/normalize";
+import { cleanText, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
 
 // ── home-knu CMS 어댑터 ───────────────────────────────────────────
 // 대상: AI전공(seeai)·자원봉사(volunteer)·장학복지(knussw)·AIC(aic) [home.knu.ac.kr]
@@ -80,9 +80,8 @@ function parseRow($: CheerioAPI, tr: AnyNode, source: SourceConfig): NoticeItem 
     sourceName: source.name,
     category: source.category,
     title,
-    // 상세 URL(mv_data)에 만료되는 세션 토큰이 있어 콜드 클릭 시 '잘못된 접근'.
-    // 콜드로도 열리는 목록 페이지로 연결한다(수집 대상이 최신글이라 상단에 보임).
-    url: source.listUrl,
+    // home.knu CMS 상세(sub.htm?mode=view&mv_data=...) 직링크 정상 동작.
+    url: resolveUrl(href, source.listUrl),
     author,
     publishedAt: toKstIso(dateText),
     publishedDate: normDate(dateText),
