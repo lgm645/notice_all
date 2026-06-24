@@ -21,11 +21,15 @@ function driver(): Promise<Driver> {
 }
 
 async function init(): Promise<Driver> {
-  const kind = process.env.DB_DRIVER ?? "pglite";
+  const url = (process.env.DATABASE_URL ?? "").trim();
+  const explicit = (process.env.DB_DRIVER ?? "").trim().toLowerCase();
+  const looksPg = /^postgres(ql)?:\/\//i.test(url);
+  // DB_DRIVER 가 비었거나 오타여도, DATABASE_URL 이 postgres 주소면 자동으로 postgres 사용.
+  // (명시적으로 pglite 라고 적었으면 그 의도를 존중)
+  const kind = explicit === "pglite" ? "pglite" : explicit === "postgres" || looksPg ? "postgres" : "pglite";
 
   if (kind === "postgres") {
     const { default: postgres } = await import("postgres");
-    const url = process.env.DATABASE_URL ?? "";
     const isLocal = /localhost|127\.0\.0\.1/.test(url);
     const sql = postgres(url, {
       // 서버리스(Vercel)에서 Supabase 트랜잭션 풀러(PgBouncer, 6543)를 쓰려면 필수:
