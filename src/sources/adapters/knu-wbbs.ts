@@ -38,11 +38,12 @@ function parseRow($: CheerioAPI, tr: AnyNode, source: SourceConfig): NoticeItem 
   let url: string;
   const docNo = /btin\.doc_no=(\d+)/.exec(href)?.[1];
   if (docNo) {
-    // 경북대 공지(knu-main): viewBtin.action 상세는 세션이 있어야 열려서
-    // 외부 콜드 직링크 시 error_400. → 콜드로도 열리는 목록 페이지로 연결
-    // (수집 대상이 1페이지 최신글이라 목록 상단에 보임). 중복키는 doc_no 유지.
+    // 경북대 공지(knu-main): viewBtin.action 상세는 세션이 있어야 GET 으로 열린다.
+    // 우리 /go/knu-main 라우트가 클릭 순간 세션을 만들어 정확한 글로 302 리다이렉트한다
+    // (세션 실패 시 목록 폴백). 중복키는 doc_no 유지.
     externalId = docNo;
-    url = source.listUrl;
+    const noteDiv = /btin\.note_div=(top|row)/.exec(href)?.[1] ?? "row";
+    url = `/go/knu-main?doc_no=${docNo}&note_div=${noteDiv}`;
   } else {
     // 학사공지(knu-haksa): stdViewBtin.action 상세는 GET 직링크가 정상 동작.
     // bltn_no 는 doRead() 3번째 인자에서 추출, 상세 URL 은 detailTemplate 로 구성.

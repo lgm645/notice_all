@@ -49,10 +49,12 @@ export async function GET(req: Request) {
     items
       .map((n) => {
         const pub = new Date(Number(n.pub_ms) || Date.now()).toUTCString();
+        // 내부 리다이렉트 경로(/go/...)는 절대 URL 로 변환
+        const link = typeof n.url === "string" && n.url.startsWith("/") ? origin + n.url : n.url;
         return (
           `<item>\n` +
           `<title>${xmlEscape(n.title)}</title>\n` +
-          `<link>${xmlEscape(n.url)}</link>\n` +
+          `<link>${xmlEscape(link)}</link>\n` +
           `<guid isPermaLink="false">${xmlEscape(n.id)}</guid>\n` +
           `<category>${xmlEscape(n.category)}</category>\n` +
           `<source url="${xmlEscape(origin)}">${xmlEscape(n.source_name)}</source>\n` +
