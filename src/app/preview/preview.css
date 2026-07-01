@@ -4204,7 +4204,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 [data-design="datatable"] .dt-c-date { width: 1%; }
 [data-design="datatable"] .dt-c-src { width: 1%; }
 [data-design="datatable"] .dt-c-cat { width: 1%; }
-[data-design="datatable"] .dt-c-title { width: 100%; max-width: 0; white-space: normal; }
+[data-design="datatable"] .dt-c-title { width: 100%; max-width: 0; white-space: nowrap; }
 [data-design="datatable"] .dt-c-views { width: 1%; text-align: right; }
 [data-design="datatable"] .dt-c-att { width: 1%; text-align: center; }
 
@@ -4316,12 +4316,22 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 [data-design="datatable"] .dt-c-title {
   overflow: hidden;
 }
+[data-design="datatable"] .dt-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
 [data-design="datatable"] .dt-title {
   color: var(--ink);
   text-decoration: none;
   font-size: 13px;
   border-bottom: 1px solid transparent;
-  display: inline;
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 [data-design="datatable"] .dt-row:hover .dt-title {
   color: var(--link);
@@ -4330,10 +4340,10 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   border-bottom-color: currentColor;
 }
 [data-design="datatable"] .dt-author {
-  display: inline-block;
-  margin-left: 8px;
+  flex: 0 0 auto;
   font-size: 10.5px;
   color: var(--faint);
+  white-space: nowrap;
 }
 [data-design="datatable"] .dt-author::before {
   content: "·";
@@ -4417,6 +4427,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
 }
 [data-design="datatable"] .dt-pg {
   font-size: 11px;
@@ -4448,6 +4459,87 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 }
 [data-design="datatable"] .dt-pageno .dt-slash {
   color: color-mix(in srgb, var(--header-ink) 50%, transparent);
+}
+/* 번호 페이지네이션 + 점프 입력 */
+[data-design="datatable"] .dt-pgnums {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+[data-design="datatable"] .dt-pg-num {
+  min-width: 26px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--header-cyan);
+  text-decoration: none;
+  border: 1px solid color-mix(in srgb, var(--header-cyan) 30%, transparent);
+  border-radius: 2px;
+  padding: 3px 6px;
+  transition: background 0.12s, color 0.12s;
+}
+[data-design="datatable"] .dt-pg-num:hover {
+  background: var(--header-cyan);
+  color: var(--header-bg);
+}
+[data-design="datatable"] .dt-pg-cur {
+  background: var(--header-cyan);
+  color: var(--header-bg);
+  border-color: var(--header-cyan);
+  cursor: default;
+}
+[data-design="datatable"] .dt-pg-ell {
+  color: color-mix(in srgb, var(--header-ink) 45%, transparent);
+  font-size: 11px;
+  padding: 0 2px;
+}
+[data-design="datatable"] .dt-jump {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--header-ink) 22%, transparent);
+}
+[data-design="datatable"] .dt-jump-lb {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--header-ink) 55%, transparent);
+}
+[data-design="datatable"] .dt-jump-in {
+  width: 50px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--header-cyan);
+  background: color-mix(in srgb, var(--header-ink) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--header-cyan) 40%, transparent);
+  border-radius: 2px;
+  padding: 3px 4px;
+}
+[data-design="datatable"] .dt-jump-tot {
+  font-size: 10.5px;
+  color: color-mix(in srgb, var(--header-ink) 55%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+[data-design="datatable"] .dt-jump-go {
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--header-bg);
+  background: var(--header-cyan);
+  border: none;
+  border-radius: 2px;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+[data-design="datatable"] .dt-jump-go:hover {
+  filter: brightness(1.12);
 }
 [data-design="datatable"] .dt-foot-meta {
   display: flex;

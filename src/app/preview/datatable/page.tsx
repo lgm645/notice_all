@@ -26,10 +26,27 @@ function fmtViews(v: number | null): string {
   return String(v);
 }
 
-// 출처명 압축 티커(영문 약어 느낌). 한글 출처는 앞 4자.
-function ticker(name: string): string {
-  const t = name.replace(/\s+/g, "");
-  return t.slice(0, 4);
+// 출처명 축약: "경북대학교"/"경북대" → "경대" (전체 이름을 잘리지 않게 표기).
+function shortSrc(name: string): string {
+  return name.replace(/경북대학교/g, "경대").replace(/경북대/g, "경대");
+}
+
+// 하단 페이지 번호 목록(현재 주변 window + 처음/끝, 사이는 …).
+function pageWindow(cur: number, total: number): (number | "…")[] {
+  const out: (number | "…")[] = [];
+  const win = 2;
+  const start = Math.max(1, cur - win);
+  const end = Math.min(total, cur + win);
+  if (start > 1) {
+    out.push(1);
+    if (start > 2) out.push("…");
+  }
+  for (let n = start; n <= end; n++) out.push(n);
+  if (end < total) {
+    if (end < total - 1) out.push("…");
+    out.push(total);
+  }
+  return out;
 }
 
 export default async function Page({
@@ -207,7 +224,7 @@ export default async function Page({
                     <td className="dt-c-src">
                       <span className={"dt-src dt-src-" + sh} title={n.source_name}>
                         <span className="dt-src-dot" aria-hidden="true" />
-                        <span className="dt-src-tick">{ticker(n.source_name)}</span>
+                        <span className="dt-src-tick">{shortSrc(n.source_name)}</span>
                       </span>
                     </td>
 
@@ -216,17 +233,19 @@ export default async function Page({
                       <span className={"dt-cat dt-cat-" + ch}>{n.category}</span>
                     </td>
 
-                    {/* 제목 (링크) */}
+                    {/* 제목 (링크) — 한 줄 유지, 길면 … */}
                     <td className="dt-c-title">
-                      <a
-                        className="dt-title"
-                        href={n.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {n.title}
-                      </a>
-                      {n.author ? <span className="dt-author">{n.author}</span> : null}
+                      <div className="dt-title-wrap">
+                        <a
+                          className="dt-title"
+                          href={n.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {n.title}
+                        </a>
+                        {n.author ? <span className="dt-author">{n.author}</span> : null}
+                      </div>
                     </td>
 
                     {/* 조회수 (우측정렬 모노) */}
@@ -271,10 +290,22 @@ export default async function Page({
           ) : (
             <span className="dt-pg dt-pg-off">◂ PREV</span>
           )}
-          <span className="dt-pageno">
-            {String(d.pageNum).padStart(2, "0")}
-            <span className="dt-slash"> / </span>
-            {String(d.totalPages).padStart(2, "0")}
+          <span className="dt-pgnums">
+            {pageWindow(d.pageNum, d.totalPages).map((p, i) =>
+              p === "…" ? (
+                <span key={`e${i}`} className="dt-pg-ell">
+                  …
+                </span>
+              ) : p === d.pageNum ? (
+                <span key={p} className="dt-pg-num dt-pg-cur" aria-current="page">
+                  {String(p).padStart(2, "0")}
+                </span>
+              ) : (
+                <a key={p} className="dt-pg-num" href={d.pageHref(p as number)}>
+                  {String(p).padStart(2, "0")}
+                </a>
+              ),
+            )}
           </span>
           {d.pageNum < d.totalPages ? (
             <a className="dt-pg" href={d.pageHref(d.pageNum + 1)}>
@@ -283,6 +314,27 @@ export default async function Page({
           ) : (
             <span className="dt-pg dt-pg-off">NEXT ▸</span>
           )}
+          <form className="dt-jump" method="get">
+            {d.source ? <input type="hidden" name="source" value={d.source} /> : null}
+            {d.category ? <input type="hidden" name="category" value={d.category} /> : null}
+            {d.q ? <input type="hidden" name="q" value={d.q} /> : null}
+            <span className="dt-jump-lb" aria-hidden="true">
+              GOTO
+            </span>
+            <input
+              className="dt-jump-in"
+              type="number"
+              name="page"
+              min={1}
+              max={d.totalPages}
+              defaultValue={d.pageNum}
+              aria-label="페이지 번호로 이동"
+            />
+            <span className="dt-jump-tot">/ {d.totalPages}</span>
+            <button className="dt-jump-go" type="submit">
+              이동 ▸
+            </button>
+          </form>
         </nav>
         <div className="dt-foot-meta">
           <span className="dt-foot-stat">
