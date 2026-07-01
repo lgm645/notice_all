@@ -392,12 +392,6 @@ export default async function Page({
           <span className="dt-foot-stat">
             {rangeFrom}–{rangeTo} <i>of</i> {d.total.toLocaleString()}
           </span>
-          <a className="dt-rss" href={d.feedHref}>
-            <span className="dt-rss-ic" aria-hidden="true">
-              ⦿
-            </span>
-            RSS FEED
-          </a>
         </div>
       </div>
 
