@@ -4374,6 +4374,9 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   color: var(--muted);
   letter-spacing: 0.01em;
 }
+[data-design="datatable"] .dt-date-yy {
+  color: var(--faint);
+}
 
 /* 출처: 색상 점 + 티커 (8색) */
 [data-design="datatable"] .dt-src {
@@ -4740,9 +4743,6 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   [data-design="datatable"] .dt-stat-range {
     display: none;
   }
-  [data-design="datatable"] .dt-author {
-    display: none;
-  }
 }
 @media (max-width: 720px) {
   [data-design="datatable"] {
@@ -4760,8 +4760,21 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   [data-design="datatable"] .refresh {
     margin-left: auto;
   }
-  /* 모노 밀도는 유지하되, 출처는 점만(티커 숨김) + 셀 패딩 축소 */
-  [data-design="datatable"] .dt-src-tick {
+  /* 모바일: 열을 숨기지 않고 표를 내용만큼 넓혀 가로 스크롤로 전체 내용 확인 */
+  [data-design="datatable"] .dt-table {
+    width: max-content;
+    min-width: 100%;
+  }
+  [data-design="datatable"] .dt-c-title {
+    width: auto;
+    max-width: none;
+  }
+  [data-design="datatable"] .dt-title {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  /* 날짜는 연도 숨김 → 07/01 */
+  [data-design="datatable"] .dt-date-yy {
     display: none;
   }
   [data-design="datatable"] .dt-table td,
@@ -4776,10 +4789,6 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   }
 }
 @media (max-width: 520px) {
-  /* 좁은 화면: 분류 컬럼 숨겨 핵심(상태·날짜·출처·제목·조회수) 유지 */
-  [data-design="datatable"] .dt-c-cat {
-    display: none;
-  }
   [data-design="datatable"] .dt-footbar {
     justify-content: center;
   }

@@ -32,6 +32,13 @@ function fmtViews(v: number | null): string {
   return String(v);
 }
 
+// 날짜: "2026-07-01" → { yy: "26", md: "07/01" }  (데스크탑 26/07/01, 모바일 07/01)
+function fmtDate(d: string): { yy: string; md: string } {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d ?? "");
+  if (!m) return { yy: "", md: d ?? "" };
+  return { yy: m[1].slice(2), md: `${m[2]}/${m[3]}` };
+}
+
 // 출처명 축약: "경북대학교"/"경북대" → "경대" (전체 이름을 잘리지 않게 표기).
 function shortSrc(name: string): string {
   return name.replace(/경북대학교/g, "경대").replace(/경북대/g, "경대");
@@ -239,6 +246,7 @@ export default async function Page({
               {d.notices.map((n) => {
                 const sh = srcHue(String(n.source_id));
                 const ch = catHue(String(n.category ?? ""));
+                const fd = fmtDate(String(n.display_date ?? ""));
                 return (
                   <tr
                     key={n.id}
@@ -265,10 +273,11 @@ export default async function Page({
                       )}
                     </td>
 
-                    {/* 날짜 */}
+                    {/* 날짜: 26/07/01 (모바일은 연도 숨김 → 07/01) */}
                     <td className="dt-c-date">
                       <time className="dt-date" dateTime={n.display_date}>
-                        {n.display_date}
+                        {fd.yy ? <span className="dt-date-yy">{fd.yy}/</span> : null}
+                        {fd.md}
                       </time>
                     </td>
 
