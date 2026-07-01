@@ -15,9 +15,8 @@ import "@fontsource/gothic-a1/latin-400.css";
 import "@fontsource/gothic-a1/latin-700.css";
 import "./globals.css";
 
-// 서버리스 함수를 서울 리전에 배치 — 사용자(한국)·Supabase(Seoul)와 동일 지역이라
-// 태평양 왕복 없이 DB 조회 지연이 최소화된다(App Router 하위 라우트에 상속).
-export const preferredRegion = "icn1";
+// 서버 함수 실행 리전(서울/icn1)은 vercel.json 의 "regions" 로 지정한다.
+// (preferredRegion 라우트 설정은 Edge 런타임 전용 — 여기 nodejs 함수엔 무효)
 
 export const metadata: Metadata = {
   title: "경북대 공지 통합 알리미",
