@@ -4778,6 +4778,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   [data-design="datatable"] .dt-headrow th {
     padding: 6px 4px;
     vertical-align: middle;
+    font-size: 12px; /* 모바일: 헤더+본문 폰트 12px 통일 */
   }
   [data-design="datatable"] .dt-c-flag { width: 44px; }
   [data-design="datatable"] .dt-c-date { width: 42px; }
