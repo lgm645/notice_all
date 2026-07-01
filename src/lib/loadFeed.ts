@@ -2,7 +2,7 @@ import {
   countNoticesCached as countNotices,
   getFacetsCached as getFacets,
   getNoticesCached as getNotices,
-} from "../../../lib/queries";
+} from "./queries";
 
 // 모든 프리뷰 디자인이 공유하는 데이터 로더 (메인 page.tsx 와 동일 로직).
 // 디자인은 이 데이터만 받아서 마크업/스타일만 다르게 그린다.

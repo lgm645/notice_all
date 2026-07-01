@@ -18,7 +18,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        {/* Data Terminal 디자인용 웹폰트 (제목=Pretendard, 모노=JetBrains/나눔고딕코딩) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800&family=Nanum+Gothic+Coding:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
+        {children}
+      </body>
     </html>
   );
 }
