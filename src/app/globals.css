@@ -7,6 +7,11 @@
   --accent: #c8102e; /* 경북대 레드 */
   --accent-soft: #fdeaed;
   --new: #1d9e75;
+
+  /* 자체 호스팅 폰트(fontsource) 실제 패밀리명 — designs.css 의 var(--font-*) 가 참조 */
+  --font-mono: "JetBrains Mono"; /* 라틴/숫자 모노 */
+  --font-ko: "Nanum Gothic Coding"; /* 한글 모노 본문 */
+  --font-ko-sans: "Gothic A1"; /* 한글 비례 제목 */
 }
 
 * {

@@ -6,6 +6,7 @@ import { SOURCES } from "../sources/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const preferredRegion = "icn1"; // 서울 리전(사용자·Supabase와 동일 지역 → 지연 최소화)
 
 const BASE = "/";
 

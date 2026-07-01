@@ -2,6 +2,7 @@ import { getNoticesCached as getNotices } from "../../lib/queries";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const preferredRegion = "icn1"; // 서울 리전(Supabase Seoul과 동일 지역)
 
 // RSS 2.0 피드. 전체: /feed.xml · 출처별: /feed.xml?source=cse · 카테고리별: /feed.xml?category=혜택
 // 자기 리더(예: Feedly)로 직접 구독하고 싶은 사람용.

@@ -4,6 +4,7 @@ import { runScrape } from "../../../sources/run";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const preferredRegion = "icn1"; // 서울 리전(Supabase Seoul과 동일 지역)
 export const maxDuration = 60; // 동시 수집은 보통 ~10초지만 여유 있게
 
 // 마지막 새로고침으로부터 최소 이 시간이 지나야 수동 새로고침 허용(무료 티어·예의 보호).

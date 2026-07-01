@@ -384,7 +384,7 @@
   background: var(--br-acc);
 }
 [data-design="brutalist"] .br-tag {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -458,7 +458,7 @@
   font-weight: 400;
 }
 [data-design="brutalist"] .br-stat-lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -480,7 +480,7 @@
   align-items: center;
   min-height: 44px;
   padding: 8px 16px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -535,7 +535,7 @@
   cursor: not-allowed;
 }
 [data-design="brutalist"] .refresh-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   color: var(--br-mut);
@@ -558,7 +558,7 @@
   min-width: 0;
 }
 [data-design="brutalist"] .br-field-lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -622,7 +622,7 @@
   box-shadow: 1px 1px 0 var(--br-line);
 }
 [data-design="brutalist"] .br-reset {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
@@ -656,7 +656,7 @@
   margin-bottom: 18px;
 }
 [data-design="brutalist"] .br-active-lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -758,7 +758,7 @@
 [data-design="brutalist"] .br-new {
   display: none;
   margin-left: auto;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -830,7 +830,7 @@
   margin-top: 12px;
   padding-top: 10px;
   border-top: 2px solid var(--br-line);
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 500;
   color: var(--br-mut);
@@ -896,7 +896,7 @@
   font-size: 16px;
 }
 [data-design="brutalist"] .br-state-code {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   color: var(--br-mut);
   background: var(--br-bg);
@@ -945,7 +945,7 @@
   cursor: not-allowed;
 }
 [data-design="brutalist"] .br-pageno {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 16px;
   font-weight: 700;
   color: var(--br-ink);
@@ -985,7 +985,7 @@
   line-height: 0.9;
 }
 [data-design="brutalist"] .br-foot-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   color: #d6d6cf;
@@ -2428,7 +2428,7 @@
   color: var(--bn-muted);
 }
 [data-design="bento"] .bn-stat-v {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: clamp(1.7rem, 3.4vw, 2.5rem);
   font-weight: 700;
   line-height: 1.05;
@@ -2635,7 +2635,7 @@
 /* NEW 마커: 기본 숨김 → 컨트롤러가 .is-new 추가 시 노출 */
 [data-design="bento"] .bn-new {
   display: none;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -2684,7 +2684,7 @@
   padding-top: 4px;
 }
 [data-design="bento"] .bn-date {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-weight: 500;
   color: var(--bn-ink2);
 }
@@ -2720,7 +2720,7 @@
   min-width: 2px;
 }
 [data-design="bento"] .bn-views-n {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--bn-ink2);
@@ -2802,7 +2802,7 @@
   box-shadow: none;
 }
 [data-design="bento"] .bn-pager-now {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 0.9rem;
   color: var(--bn-muted);
 }
@@ -2825,7 +2825,7 @@
   color: var(--bn-muted);
 }
 [data-design="bento"] .bn-foot-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
 }
 [data-design="bento"] .bn-rss {
   font-weight: 700;
@@ -3077,7 +3077,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   background: var(--br-acc);
 }
 [data-design="brutalist"] .br-tag {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -3151,7 +3151,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   font-weight: 400;
 }
 [data-design="brutalist"] .br-stat-lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -3173,7 +3173,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   align-items: center;
   min-height: 44px;
   padding: 8px 16px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -3228,7 +3228,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   cursor: not-allowed;
 }
 [data-design="brutalist"] .refresh-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   color: var(--br-mut);
@@ -3251,7 +3251,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   min-width: 0;
 }
 [data-design="brutalist"] .br-field-lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -3315,7 +3315,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   box-shadow: 1px 1px 0 var(--br-line);
 }
 [data-design="brutalist"] .br-reset {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
@@ -3349,7 +3349,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   margin-bottom: 18px;
 }
 [data-design="brutalist"] .br-active-lbl {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -3451,7 +3451,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 [data-design="brutalist"] .br-new {
   display: none;
   margin-left: auto;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -3523,7 +3523,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   margin-top: 12px;
   padding-top: 10px;
   border-top: 2px solid var(--br-line);
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 500;
   color: var(--br-mut);
@@ -3589,7 +3589,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   font-size: 16px;
 }
 [data-design="brutalist"] .br-state-code {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   color: var(--br-mut);
   background: var(--br-bg);
@@ -3638,7 +3638,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   cursor: not-allowed;
 }
 [data-design="brutalist"] .br-pageno {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 16px;
   font-weight: 700;
   color: var(--br-ink);
@@ -3678,7 +3678,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   line-height: 0.9;
 }
 [data-design="brutalist"] .br-foot-meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 12px;
   font-weight: 700;
   color: #d6d6cf;
@@ -3857,7 +3857,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 
   background: var(--bg);
   color: var(--ink);
-  font-family: "JetBrains Mono", "Nanum Gothic Coding", ui-monospace, monospace;
+  font-family: var(--font-mono), var(--font-ko), ui-monospace, monospace;
   font-size: 13px;
   line-height: 1.35;
   padding: 0 0 0;
@@ -3877,7 +3877,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 [data-design="datatable"] .dt-reset,
 [data-design="datatable"] .dt-empty,
 [data-design="datatable"] .dt-headrow th {
-  font-family: "Nanum Gothic Coding", "Gothic A1", "JetBrains Mono", monospace;
+  font-family: var(--font-ko), var(--font-ko-sans), var(--font-mono), monospace;
 }
 
 /* ===================== 상단 타이틀 바 ===================== */
@@ -4136,7 +4136,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   gap: 8px;
 }
 [data-design="datatable"] .refresh-btn {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -4187,7 +4187,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 }
 [data-design="datatable"] .dt-search,
 [data-design="datatable"] .dt-sel {
-  font-family: "JetBrains Mono", "Nanum Gothic Coding", monospace;
+  font-family: var(--font-mono), var(--font-ko), monospace;
   font-size: 12px;
   color: var(--ink);
   background: var(--panel);
@@ -4214,7 +4214,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--cyan) 22%, transparent);
 }
 [data-design="datatable"] .dt-run {
-  font-family: "Nanum Gothic Coding", monospace;
+  font-family: var(--font-ko), monospace;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -4447,7 +4447,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   color: var(--ink);
   text-decoration: none;
   /* 제목은 비례 폰트로 통일(모노 숫자가 커 보이는 문제 해결). 숫자 열은 모노 유지 */
-  font-family: "Pretendard", "Gothic A1", sans-serif;
+  font-family: var(--font-ko-sans), sans-serif;
   font-size: 12px;
   border-bottom: 1px solid transparent;
   min-width: 0;
@@ -4506,7 +4506,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   padding: 28px clamp(10px, 2.4vw, 22px);
 }
 [data-design="datatable"] .dt-noop {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -4936,7 +4936,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   position: absolute;
   top: 10px;
   left: 12px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-mono), monospace;
   font-size: 0.8rem;
   font-weight: 700;
   color: #fff;

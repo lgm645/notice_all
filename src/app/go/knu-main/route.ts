@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const preferredRegion = "icn1"; // 서울 리전(경북대 서버가 국내 → 목록 fetch 지연도 감소)
 
 // 경북대 공지(knu-main)의 정확한 글로 보내는 리다이렉트.
 // viewBtin.action 상세는 세션이 있어야 GET 으로 열린다(세션ID는 URL 의 ;wbbssessionid= 로 전달 가능).
