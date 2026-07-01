@@ -4439,6 +4439,8 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 [data-design="datatable"] .dt-title {
   color: var(--ink);
   text-decoration: none;
+  /* 제목은 비례 폰트로 통일(모노 숫자가 커 보이는 문제 해결). 숫자 열은 모노 유지 */
+  font-family: "Pretendard", "Gothic A1", sans-serif;
   font-size: 12px;
   border-bottom: 1px solid transparent;
   min-width: 0;
@@ -4768,6 +4770,8 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
      긴 칸(제목·출처)은 그 칸 안에서 좌우 스와이프로 전체 내용 확인 = 칸별 독립 스크롤. */
   [data-design="datatable"] .dt-scroll {
     overflow-x: hidden;
+    /* 표 전체 여백(가장자리에 붙지 않게) — 첨부 열 오른쪽 공간 포함 */
+    padding: 2px 12px 12px;
   }
   [data-design="datatable"] .dt-table {
     table-layout: fixed;
