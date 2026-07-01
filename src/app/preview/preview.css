@@ -4338,14 +4338,7 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0.18; }
 }
-/* 컨트롤러가 행에 .is-new 부여 → NEW 마커 노출, 고정/· 숨김 */
-[data-design="datatable"] .dt-row.is-new .dt-new {
-  display: inline-flex;
-}
-[data-design="datatable"] .dt-row.is-new .dt-rest,
-[data-design="datatable"] .dt-row.is-new .dt-fixed {
-  display: none;
-}
+/* ST 열 삭제됨: 새 글은 행 배경 틴트(아래) + 왼쪽 강조바로 표시. 공지 배지는 유지. */
 [data-design="datatable"] .dt-row.is-new {
   background: color-mix(in srgb, var(--new) 8%, var(--panel));
 }
@@ -4430,11 +4423,25 @@ html[data-theme="light"] [data-design="bento"] .bn-pill {
 [data-design="datatable"] .dt-c-title {
   overflow: hidden;
 }
+[data-design="datatable"] .dt-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+[data-design="datatable"] .dt-title-cell .dt-fixed {
+  flex: 0 0 auto;
+}
 [data-design="datatable"] .dt-title-wrap {
   display: flex;
   align-items: baseline;
   gap: 8px;
   min-width: 0;
+  flex: 1 1 auto;
+}
+/* ST 열 제거 → 새 글 행 왼쪽 강조바(배경 틴트는 기존 .dt-row.is-new 규칙 사용) */
+[data-design="datatable"] .dt-row.is-new td:first-child {
+  box-shadow: inset 3px 0 0 var(--new);
 }
 [data-design="datatable"] .dt-title {
   color: var(--ink);

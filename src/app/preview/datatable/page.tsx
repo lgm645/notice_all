@@ -232,9 +232,6 @@ export default async function Page({
           <table className="dt-table">
             <thead>
               <tr className="dt-headrow">
-                <th className="dt-c-flag" scope="col">
-                  ST
-                </th>
                 <th className="dt-c-date" scope="col">
                   날짜
                 </th>
@@ -267,25 +264,6 @@ export default async function Page({
                     data-firstseen={Math.round(n.first_seen_ms)}
                     data-sh={sh}
                   >
-                    {/* 상태: NEW(점멸) / 공지(고정) / · */}
-                    <td className="dt-c-flag">
-                      <span className="dt-new" aria-label="새 글">
-                        <span className="dt-dot-blink" aria-hidden="true">
-                          ●
-                        </span>
-                        NEW
-                      </span>
-                      {n.is_fixed ? (
-                        <span className="dt-fixed" title="상단 고정 공지">
-                          공지
-                        </span>
-                      ) : (
-                        <span className="dt-rest" aria-hidden="true">
-                          ·
-                        </span>
-                      )}
-                    </td>
-
                     {/* 날짜: 26/07/01 (모바일은 연도 숨김 → 07/01) */}
                     <td className="dt-c-date">
                       <time className="dt-date" dateTime={n.display_date}>
@@ -307,18 +285,25 @@ export default async function Page({
                       <span className={"dt-cat dt-cat-" + ch}>{n.category}</span>
                     </td>
 
-                    {/* 제목 (링크) — 한 줄 유지, 길면 … */}
+                    {/* 제목 (링크) — 한 줄 유지, 길면 … / 공지는 앞 배지 */}
                     <td className="dt-c-title">
-                      <div className="dt-title-wrap">
-                        <a
-                          className="dt-title"
-                          href={n.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {n.title}
-                        </a>
-                        {n.author ? <span className="dt-author">{n.author}</span> : null}
+                      <div className="dt-title-cell">
+                        {n.is_fixed ? (
+                          <span className="dt-fixed" title="상단 고정 공지">
+                            공지
+                          </span>
+                        ) : null}
+                        <div className="dt-title-wrap">
+                          <a
+                            className="dt-title"
+                            href={n.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {n.title}
+                          </a>
+                          {n.author ? <span className="dt-author">{n.author}</span> : null}
+                        </div>
                       </div>
                     </td>
 
