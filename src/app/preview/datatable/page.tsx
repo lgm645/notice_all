@@ -39,9 +39,22 @@ function fmtDate(d: string): { yy: string; md: string } {
   return { yy: m[1].slice(2), md: `${m[2]}/${m[3]}` };
 }
 
-// 출처명 축약: "경북대학교"/"경북대" → "경대" (전체 이름을 잘리지 않게 표기).
-function shortSrc(name: string): string {
-  return name.replace(/경북대학교/g, "경대").replace(/경북대/g, "경대");
+// 출처 표시명(커스텀). 매핑에 없으면 원래 이름 그대로.
+const SRC_NAME: Record<string, string> = {
+  cse: "경대컴학공지",
+  seeai: "경대ai공지",
+  "knu-haksa": "경대학사공지",
+  "knu-main": "경대공지",
+  see: "경대전자공지",
+  kosaf: "장학재단공지",
+  aic: "aicoss공지",
+  knussw: "경대장학공지",
+  startup: "경대창업공지",
+  volunteer: "경대봉사공지",
+  library: "경대도서관공지",
+};
+function srcName(id: string, full: string): string {
+  return SRC_NAME[id] ?? full;
 }
 
 // 하단 페이지 번호 목록(현재 주변 window + 처음/끝, 사이는 …).
@@ -116,7 +129,7 @@ export default async function Page({
                   const inner = (
                     <>
                       <span className="dt-src-pop-dot" aria-hidden="true" />
-                      <span className="dt-src-pop-nm">{s.source_name}</span>
+                      <span className="dt-src-pop-nm">{srcName(String(s.source_id), s.source_name)}</span>
                       <span className="dt-src-pop-ct">{s.count}</span>
                       {url ? (
                         <span className="dt-src-pop-ext" aria-hidden="true">
@@ -183,7 +196,7 @@ export default async function Page({
           <option value="">SRC · 전체 출처</option>
           {d.facets.sources.map((s) => (
             <option key={s.source_id} value={s.source_id}>
-              {s.source_name} ({s.count})
+              {srcName(String(s.source_id), s.source_name)} ({s.count})
             </option>
           ))}
         </select>
@@ -285,7 +298,7 @@ export default async function Page({
                     <td className="dt-c-src">
                       <span className={"dt-src dt-src-" + sh} title={n.source_name}>
                         <span className="dt-src-dot" aria-hidden="true" />
-                        <span className="dt-src-tick">{shortSrc(n.source_name)}</span>
+                        <span className="dt-src-tick">{srcName(String(n.source_id), n.source_name)}</span>
                       </span>
                     </td>
 
