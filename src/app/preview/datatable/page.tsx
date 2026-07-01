@@ -1,11 +1,17 @@
 import { loadFeed } from "../_lib/loadFeed";
 import RefreshButton from "../../components/RefreshButton";
 import NewSinceController from "../../components/NewSinceController";
+import { SOURCES } from "../../../sources/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const BASE = "/preview/datatable";
+
+// 출처 ID → 원본 게시판 사이트 주소(목록 페이지). 출처 팝오버 링크에 사용.
+const SITE_URL: Record<string, string> = Object.fromEntries(
+  SOURCES.map((s) => [s.id, s.listUrl]),
+);
 
 // 출처 ID → 색상 인덱스(0..7). 안정적 해시로 같은 출처는 항상 같은 컬러.
 function srcHue(id: string): number {
@@ -82,9 +88,55 @@ export default async function Page({
             <i className="dt-k">총건수</i>
             <b className="dt-v">{d.total.toLocaleString()}</b>
           </span>
-          <span className="dt-stat">
-            <i className="dt-k">출처</i>
-            <b className="dt-v">{d.facets.sources.length}</b>
+          <span className="dt-stat dt-stat-src">
+            <button
+              className="dt-src-trigger"
+              type="button"
+              aria-haspopup="true"
+              aria-label="수집 대상 게시판 목록 보기"
+            >
+              <i className="dt-k">출처 ▾</i>
+              <b className="dt-v">{d.facets.sources.length}</b>
+            </button>
+            <div className="dt-src-pop" role="menu">
+              <div className="dt-src-pop-head">
+                수집 대상 게시판 · {d.facets.sources.length}곳 · 클릭 시 원본 사이트 ↗
+              </div>
+              <ul className="dt-src-pop-list">
+                {d.facets.sources.map((s) => {
+                  const url = SITE_URL[String(s.source_id)];
+                  const sh = srcHue(String(s.source_id));
+                  const inner = (
+                    <>
+                      <span className="dt-src-pop-dot" aria-hidden="true" />
+                      <span className="dt-src-pop-nm">{s.source_name}</span>
+                      <span className="dt-src-pop-ct">{s.count}</span>
+                      {url ? (
+                        <span className="dt-src-pop-ext" aria-hidden="true">
+                          ↗
+                        </span>
+                      ) : null}
+                    </>
+                  );
+                  return (
+                    <li key={s.source_id}>
+                      {url ? (
+                        <a
+                          className={"dt-src-pop-item dt-src-" + sh}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        <span className={"dt-src-pop-item dt-src-" + sh}>{inner}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </span>
           <span className="dt-stat">
             <i className="dt-k">카테고리</i>
