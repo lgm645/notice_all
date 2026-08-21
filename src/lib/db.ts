@@ -136,6 +136,21 @@ export async function upsertNotices(items: NoticeItem[]) {
   return { total: deduped.length, inserted, updated: deduped.length - inserted };
 }
 
+// 게시일은 우리가 글을 처음 발견한 날보다 미래일 수 없다.
+// 과거 파서가 제목 속 행사 시작일을 게시일로 저장한 행처럼 이 불변식을 어긴
+// 기존 데이터는, 매시간 수집한 first_seen_at의 KST 날짜로 안전하게 복구한다.
+export async function repairFuturePublishedDates(): Promise<number> {
+  const d = await driver();
+  const rows = await d.query(
+    `update notices
+     set published_date = (first_seen_at at time zone 'Asia/Seoul')::date,
+         published_at = date_trunc('day', first_seen_at at time zone 'Asia/Seoul') at time zone 'Asia/Seoul'
+     where published_date > (first_seen_at at time zone 'Asia/Seoul')::date
+     returning id`,
+  );
+  return rows.length;
+}
+
 // ── 읽기: 통합 피드 + 필터 + 검색 ────────────────────────────────
 export interface NoticeFilter {
   source?: string;

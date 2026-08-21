@@ -2,15 +2,13 @@ import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
 import type { NoticeItem, SourceAdapter, SourceConfig } from "../../lib/types";
-import { cleanText, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
+import { cleanText, isStandaloneDate, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
 
 // ── home-knu CMS 어댑터 ───────────────────────────────────────────
 // 대상: AI전공(seeai)·자원봉사(volunteer)·장학복지(knussw)·AIC(aic) [home.knu.ac.kr]
 //       + 도서관(library) [kudos.knu.ac.kr] — 같은 CMS, 호스트만 다름.
 // 글 ID(idx)는 제목 a 의 href 안 base64 mv_data 를 디코드해 추출(library 는 끝의 || 제거).
-// 컬럼이 클래스/위치 두 형태가 있어, 날짜를 정규식으로 찾고 좌우에서 작성자/조회를 잡는다.
-
-const DATE = /\d{4}[-./]\d{1,2}[-./]\d{1,2}/;
+// 컬럼이 클래스/위치 두 형태가 있어, 독립된 날짜 칸을 찾고 좌우에서 작성자/조회를 잡는다.
 
 function idxFromMvData(href: string): string | null {
   const m = /mv_data=([^&"'\s]+)/.exec(href);
@@ -46,11 +44,15 @@ function parseRow($: CheerioAPI, tr: AnyNode, source: SourceConfig): NoticeItem 
   if (!title) return null;
 
   const tds = $tr.find("td");
+  const titleCell = $a.closest("td").get(0);
   let dateIdx = -1;
   tds.each((i, td) => {
-    if (dateIdx < 0 && DATE.test(cleanText($(td).text()))) dateIdx = i;
+    if (dateIdx < 0 && td !== titleCell && isStandaloneDate($(td).text())) dateIdx = i;
   });
-  let dateText = dateIdx >= 0 ? cleanText(tds.eq(dateIdx).text()) : cleanText($tr.find("td.date").first().text());
+  const semanticDate = cleanText($tr.find("td.date").first().text());
+  const dateText = dateIdx >= 0
+    ? cleanText(tds.eq(dateIdx).text())
+    : isStandaloneDate(semanticDate) ? semanticDate : "";
 
   let author = cleanText($tr.find("td.writer").first().text()) || null;
   if (!author && dateIdx > 0) {

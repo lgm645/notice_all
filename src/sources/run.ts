@@ -1,6 +1,6 @@
 import { getAdapter } from "./registry";
 import { SOURCES } from "./config";
-import { touchLastRefresh, upsertNotices } from "../lib/db";
+import { repairFuturePublishedDates, touchLastRefresh, upsertNotices } from "../lib/db";
 import { fetchHtml } from "../lib/http";
 import type { FetchContext, NoticeItem, SourceConfig } from "../lib/types";
 
@@ -12,8 +12,26 @@ export interface RunResult {
   total?: number;
   inserted?: number;
   updated?: number;
+  rejectedFutureDates?: number;
   error?: string;
   samples?: NoticeItem[];
+}
+
+function todayKst(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+}
+
+// 원본 사이트나 파서가 잘못된 값을 주더라도 미래 게시일은 DB에 넣지 않는다.
+// 날짜를 비우면 조회 시 first_seen_at을 사용하므로 피드 정렬도 미래로 튀지 않는다.
+export function rejectFuturePublishedDates(items: NoticeItem[], today = todayKst()) {
+  let rejected = 0;
+  const safeItems = items.map((item) => {
+    const date = item.publishedDate ?? item.publishedAt?.slice(0, 10) ?? null;
+    if (!date || date <= today) return item;
+    rejected++;
+    return { ...item, publishedAt: null, publishedDate: null };
+  });
+  return { items: safeItems, rejected };
 }
 
 async function scrapeOne(
@@ -31,11 +49,12 @@ async function scrapeOne(
     delay: () => sleep(delayMs),
   };
   try {
-    const items = await getAdapter(s.platform).fetchList(s, ctx);
+    const parsed = await getAdapter(s.platform).fetchList(s, ctx);
+    const { items, rejected } = rejectFuturePublishedDates(parsed);
     if (items.length === 0) return { source: s.id, total: 0, inserted: 0, updated: 0 };
-    if (dry) return { source: s.id, total: items.length, samples: items.slice(0, 5) };
+    if (dry) return { source: s.id, total: items.length, rejectedFutureDates: rejected, samples: items.slice(0, 5) };
     const r = await upsertNotices(items);
-    return { source: s.id, ...r };
+    return { source: s.id, rejectedFutureDates: rejected, ...r };
   } catch (e) {
     // 소스별 에러 격리: 한 사이트가 깨져도 나머지는 계속.
     return { source: s.id, error: e instanceof Error ? e.message : String(e) };
@@ -73,14 +92,17 @@ export async function runScrape(opts: RunOpts = {}, onResult?: (r: RunResult) =>
     }
   }
 
+  let repairedDates = 0;
   if (!opts.dry) {
     try {
+      repairedDates = await repairFuturePublishedDates();
       await touchLastRefresh();
     } catch {
-      /* app_meta 없으면 무시 */
+      /* 보조 복구/메타 갱신 실패가 소스별 수집 결과를 지우지는 않게 한다. */
     }
   }
 
   const totalNew = results.reduce((a, r) => a + (r.inserted ?? 0), 0);
-  return { results, totalNew, targets: targets.length };
+  const rejectedFutureDates = results.reduce((a, r) => a + (r.rejectedFutureDates ?? 0), 0);
+  return { results, totalNew, targets: targets.length, rejectedFutureDates, repairedDates };
 }

@@ -23,7 +23,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   log.info(`수집 시작${args.dry ? " (dry-run)" : ""}`);
 
-  const { results, totalNew } = await runScrape(
+  const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape(
     { sourceId: args.source, dry: args.dry }, // 순차(정중) 모드
     (r) => {
       if (r.error) {
@@ -40,11 +40,17 @@ async function main() {
       } else {
         log.info(`[${r.source}] ${r.total}건 (신규 ${r.inserted} / 갱신 ${r.updated})`);
       }
+      if (r.rejectedFutureDates) {
+        log.warn(`[${r.source}] 미래 게시일 ${r.rejectedFutureDates}건 차단`);
+      }
     },
   );
 
   const ok = results.filter((r) => !r.error).length;
   log.info(`완료 — 성공 ${ok}/${results.length} 소스, 신규 ${totalNew}건`);
+  if (rejectedFutureDates || repairedDates) {
+    log.warn(`날짜 보호 — 유입 차단 ${rejectedFutureDates}건 / 기존 데이터 복구 ${repairedDates}건`);
+  }
   if (ok < results.length) process.exitCode = 1;
 
   await endDb();

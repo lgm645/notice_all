@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "tsx --test tests/date-parsing.test.ts",
     "lint": "next lint",
     "db:init": "tsx src/scraper/db-init.ts",
     "scrape": "tsx src/scraper/scrape.ts --all",

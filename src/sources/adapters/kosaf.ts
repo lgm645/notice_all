@@ -2,13 +2,11 @@ import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
 import type { NoticeItem, SourceAdapter, SourceConfig } from "../../lib/types";
-import { cleanText, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
+import { cleanText, isStandaloneDate, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
 
 // ── KOSAF 어댑터 ──────────────────────────────────────────────────
 // 대상: 한국장학재단(kosaf). www.kosaf.go.kr/ko/notice.do
 // 제목 a 의 href 안 seqNo 가 글 ID. 날짜 td.day(YYYY.MM.DD), 조회 td.search.
-
-const DATE = /\d{4}[.\-/]\d{1,2}[.\-/]\d{1,2}/;
 
 function setPage(listUrl: string, page: number): string {
   const u = new URL(listUrl);
@@ -27,11 +25,12 @@ function parseRow($: CheerioAPI, tr: AnyNode, source: SourceConfig): NoticeItem 
   if (!title) return null;
 
   let dateText = cleanText($tr.find("td.day").first().text());
-  if (!DATE.test(dateText)) {
+  if (!isStandaloneDate(dateText)) {
     dateText = "";
+    const titleCell = $a.closest("td").get(0);
     $tr.find("td").each((_, td) => {
       const t = cleanText($(td).text());
-      if (!dateText && DATE.test(t)) dateText = t;
+      if (!dateText && td !== titleCell && isStandaloneDate(t)) dateText = t;
     });
   }
   const views = parseIntSafe($tr.find("td.search").first().text());

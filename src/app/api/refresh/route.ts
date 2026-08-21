@@ -51,13 +51,15 @@ export async function POST() {
   }
 
   try {
-    const { results, totalNew } = await runScrape({ concurrent: true, delayMs: 0 });
+    const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape({ concurrent: true, delayMs: 0 });
     revalidateTag("notices"); // 캐시 무효화 → 새 데이터 즉시 반영
     const ok = results.filter((r) => !r.error).length;
     return Response.json({
       ok: true,
       sources: `${ok}/${results.length}`,
       inserted: totalNew,
+      rejectedFutureDates,
+      repairedDates,
       cooldownMin: COOLDOWN_MIN,
     });
   } catch (e) {
