@@ -14,7 +14,7 @@
 
 ## 1. 사전 준비
 
-- **Node.js 20+** — 그게 전부.
+- **Node.js 20.9+** — GitHub Actions 운영 수집은 Node.js 24를 사용한다.
 - 로컬 DB 는 **PGlite(임베디드 Postgres)** 라 Docker·외부 DB 가 **필요 없다**.
   데이터는 프로젝트 안 `.pgdata/` 디렉터리에 파일로 저장된다.
 
@@ -69,7 +69,7 @@ npm run db:init && npm run scrape:cse && npm run dev
 src/
   lib/
     types.ts        # Notice / SourceConfig / SourceAdapter 인터페이스
-    http.ts         # fetch + 인코딩 자동 감지(UTF-8/EUC-KR 가드) + User-Agent
+    http.ts         # fetch + 일시 장애 자동 재시도 + 인코딩 감지(UTF-8/EUC-KR) + User-Agent
     normalize.ts    # 날짜 KST 정규화, 텍스트 정리, 중복키 생성
     db.ts           # postgres.js — upsert(쓰기) / getNotices·getFacets(읽기)
     logger.ts       # KST 타임스탬프 로거
@@ -84,7 +84,7 @@ src/
       kosaf.ts        # 한국장학재단(seqNo)
   scraper/
     db-init.ts        # 스키마 적용
-    scrape.ts         # 수집 CLI (소스별 에러 격리 · 0건 경고 · 정중한 지연)
+    scrape.ts         # 수집 CLI (소스별 에러 격리 · 0건 실패 감지 · Actions 실행 요약)
   app/
     page.tsx          # 통합 피드 (필터/검색/새 글/페이지네이션)
     feed.xml/route.ts # RSS 2.0 피드
@@ -145,19 +145,27 @@ home-knu-cms=`idx`(base64 디코드), kosaf=`seqNo`.
 ## 6. 정중한 크롤링 / 운영 메모
 
 - 모든 요청에 식별 가능한 **User-Agent** 와 **요청 간 지연**(`delayMs`, 기본 1.5s) 적용.
-- **소스별 에러 격리**: 한 사이트가 깨져도 다른 소스 수집은 계속된다.
-- **0건 반환 경고**: 특정 소스가 0건이면 "파서 깨짐" 의심 로그를 남긴다.
+- **일시 장애 재시도**: 네트워크 오류와 408/429/5xx 응답은 지수 백오프로 2회 재시도한다(총 3회 요청).
+- **소스별 에러 격리**: 한 사이트가 깨져도 나머지 소스는 끝까지 수집·저장한다.
+- **0건 반환 실패 처리**: 폐기된 URL이나 HTML 변경을 조기에 발견하도록 0건도 해당 소스의 실패로 기록한다.
 - **인코딩**: Content-Type/`<meta>` charset 자동 감지, EUC-KR 도 변환(`iconv-lite`). 현재 대상은 전부 UTF-8.
 - **robots 주의**: `home.knu.ac.kr` 계열(AI전공·자원봉사·장학복지·AIC·도서관)은
   robots `Disallow: /H*` 대상이다. 저빈도·지연·명확 UA 로 정중히 수집하기로 결정했으며,
   `config.ts` 의 `enabled` 로 언제든 끌 수 있다. **크누큐브**는 로그인 벽 + 전체 disallow 라 보류.
+
+### GitHub Actions 실패 메일 읽기
+
+- `공지 자동 수집`은 매시간 실행된다. 어떤 출처가 **재시도 후에도 실패**하면 GitHub가 실패 메일을 보낸다.
+- 이때 웹사이트가 중단되는 것은 아니다. 정상 출처의 새 글은 먼저 저장되고, 웹앱은 기존 DB를 계속 보여준다.
+- 메일의 **View workflow run**을 누르면 실행 요약에서 출처별 성공/실패, 수집 건수, 신규 건수를 한국어 표로 확인할 수 있다. 실패 출처와 원인은 오류 주석에도 바로 표시된다.
+- 다음 실행이 성공하면 일시적인 상대 사이트/네트워크 장애였던 것이다. 같은 출처가 반복 실패하면 URL 폐기나 게시판 구조 변경을 점검한다.
 
 ## 7. 로드맵
 
 - [x] **Phase 0** 셋업 · **Phase 1** 수직 슬라이스(cse)
 - [x] **Phase 2** 어댑터 일반화 → 5개 어댑터로 11개 게시판 수집
 - [x] **Phase 3** 통합 피드 · 출처/카테고리 필터 · 키워드 검색 · "새 글" · 페이지네이션 · 모바일 반응형
-- [x] **Phase 4** GitHub Actions cron 주기 수집 + 소스별 에러 격리 + 0건 경고
+- [x] **Phase 4** GitHub Actions 매시간 수집 + 자동 재시도 + 소스별 에러 격리/요약 + 0건 실패 감지
 - [x] **RSS 피드** (`/feed.xml`, 출처/카테고리별 구독 가능)
 - [ ] **Phase 5** 계정/구독/북마크 (Supabase Auth — 구조는 열려 있음, DB만 추가)
 - [ ] **Phase 6** 이메일 다이제스트/웹푸시 + 공개 배포(가이드: `DEPLOY.md`)

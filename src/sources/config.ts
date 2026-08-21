@@ -16,7 +16,8 @@ export const SOURCES: SourceConfig[] = [
     name: "경북대 컴퓨터학부",
     category: "소식",
     platform: "gnuboard",
-    listUrl: "https://cse.knu.ac.kr/bbs/board.php?bo_table=sub5_1",
+    // 2026-08 홈페이지 개편으로 기존 sub5_1 폐기 → 새 "학부 공지사항" 게시판.
+    listUrl: "https://cse.knu.ac.kr/bbs/board.php?bo_table=sub6_1_a&lang=kor",
     enabled: true,
     options: { pages: 1, delayMs: POLITE },
   },

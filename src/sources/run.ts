@@ -51,7 +51,9 @@ async function scrapeOne(
   try {
     const parsed = await getAdapter(s.platform).fetchList(s, ctx);
     const { items, rejected } = rejectFuturePublishedDates(parsed);
-    if (items.length === 0) return { source: s.id, total: 0, inserted: 0, updated: 0 };
+    if (items.length === 0) {
+      return { source: s.id, error: "0건 반환 — 게시판 URL 폐기 또는 HTML 구조 변경 여부 확인 필요" };
+    }
     if (dry) return { source: s.id, total: items.length, rejectedFutureDates: rejected, samples: items.slice(0, 5) };
     const r = await upsertNotices(items);
     return { source: s.id, rejectedFutureDates: rejected, ...r };

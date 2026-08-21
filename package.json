@@ -7,8 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "tsx --test tests/date-parsing.test.ts",
-    "lint": "next lint",
+    "test": "tsx --test tests/date-parsing.test.ts tests/http-retry.test.ts",
+    "typecheck": "tsc --noEmit",
     "db:init": "tsx src/scraper/db-init.ts",
     "scrape": "tsx src/scraper/scrape.ts --all",
     "scrape:cse": "tsx src/scraper/scrape.ts --source cse"
@@ -21,7 +21,7 @@
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.7",
     "iconv-lite": "^0.6.3",
-    "next": "^15.1.6",
+    "next": "^16.3.2",
     "postgres": "^3.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

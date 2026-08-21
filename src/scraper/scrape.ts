@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { runScrape } from "../sources/run";
+import { appendFile } from "node:fs/promises";
+import { runScrape, type RunResult } from "../sources/run";
 import { endDb } from "../lib/db";
 import { log } from "../lib/logger";
 
@@ -19,6 +20,36 @@ function parseArgs(argv: string[]) {
   return out;
 }
 
+function workflowEscape(s: string): string {
+  return s.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+}
+
+function markdownCell(s: string): string {
+  return s.replace(/\|/g, "\\|").replace(/[\r\n]+/g, " ");
+}
+
+async function writeGithubSummary(results: RunResult[], totalNew: number): Promise<void> {
+  const path = process.env.GITHUB_STEP_SUMMARY;
+  if (!path) return;
+  const failed = results.filter((r) => r.error);
+  const rows = results.map((r) =>
+    `| ${r.source} | ${r.error ? `❌ ${markdownCell(r.error)}` : "✅ 성공"} | ${r.total ?? "-"} | ${r.inserted ?? 0} |`,
+  );
+  const body = [
+    "# 공지 자동 수집 결과",
+    "",
+    `- 전체: **${results.length}개 소스**`,
+    `- 성공: **${results.length - failed.length}개** / 실패: **${failed.length}개**`,
+    `- 신규 공지: **${totalNew}건**`,
+    "",
+    "| 출처 | 상태 | 수집 건수 | 신규 |",
+    "|---|---|---:|---:|",
+    ...rows,
+    "",
+  ].join("\n");
+  await appendFile(path, body, "utf8");
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   log.info(`수집 시작${args.dry ? " (dry-run)" : ""}`);
@@ -28,8 +59,9 @@ async function main() {
     (r) => {
       if (r.error) {
         log.error(`[${r.source}] 수집 실패 — ${r.error}`);
-      } else if ((r.total ?? 0) === 0) {
-        log.warn(`[${r.source}] 0건 반환 — 파서 깨짐 의심 (HTML 구조 변경?)`);
+        if (process.env.GITHUB_ACTIONS === "true") {
+          console.error(`::error title=공지 수집 실패 · ${r.source}::${workflowEscape(r.error)}`);
+        }
       } else if (args.dry) {
         log.info(`[${r.source}] (dry) ${r.total}건 파싱됨. 상위:`);
         for (const it of r.samples ?? []) {
@@ -50,6 +82,11 @@ async function main() {
   log.info(`완료 — 성공 ${ok}/${results.length} 소스, 신규 ${totalNew}건`);
   if (rejectedFutureDates || repairedDates) {
     log.warn(`날짜 보호 — 유입 차단 ${rejectedFutureDates}건 / 기존 데이터 복구 ${repairedDates}건`);
+  }
+  try {
+    await writeGithubSummary(results, totalNew);
+  } catch (e) {
+    log.warn(`GitHub 실행 요약 작성 실패 — ${e instanceof Error ? e.message : String(e)}`);
   }
   if (ok < results.length) process.exitCode = 1;
 

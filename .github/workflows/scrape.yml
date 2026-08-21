@@ -1,4 +1,4 @@
-name: scrape
+name: 공지 자동 수집
 
 # 주기 수집: 1시간마다 (매시 정각). 수동 실행도 가능.
 on:
@@ -10,16 +10,20 @@ concurrency:
   group: scrape
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   scrape:
+    name: 11개 게시판 수집
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci

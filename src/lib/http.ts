@@ -17,21 +17,87 @@ function detectCharset(contentType: string | null, buf: Buffer): string {
   return cs;
 }
 
+const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+function requestHost(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+class HttpStatusError extends Error {
+  constructor(
+    message: string,
+    readonly retryable: boolean,
+    readonly retryAfterMs: number | null,
+  ) {
+    super(message);
+    this.name = "HttpStatusError";
+  }
+}
+
+function parseRetryAfter(value: string | null): number | null {
+  if (!value) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+  const at = Date.parse(value);
+  return Number.isFinite(at) ? Math.max(0, at - Date.now()) : null;
+}
+
+export interface FetchHtmlOptions {
+  ua?: string;
+  timeoutMs?: number;
+  retries?: number; // 최초 요청을 제외한 재시도 횟수
+  retryBaseMs?: number;
+}
+
 export async function fetchHtml(
   url: string,
-  opts: { ua?: string; timeoutMs?: number } = {},
+  opts: FetchHtmlOptions = {},
 ): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": opts.ua ?? DEFAULT_USER_AGENT,
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "ko,en;q=0.8",
-    },
-    redirect: "follow",
-    signal: AbortSignal.timeout(opts.timeoutMs ?? 30_000),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} — ${url}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  const charset = detectCharset(res.headers.get("content-type"), buf);
-  return iconv.decode(buf, charset);
+  const retries = Math.max(0, Math.floor(opts.retries ?? 2));
+  const retryBaseMs = Math.max(0, opts.retryBaseMs ?? 1500);
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": opts.ua ?? DEFAULT_USER_AGENT,
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "ko,en;q=0.8",
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(opts.timeoutMs ?? 30_000),
+      });
+      if (!res.ok) {
+        throw new HttpStatusError(
+          `HTTP ${res.status} ${res.statusText} — ${url}`,
+          RETRYABLE_STATUS.has(res.status),
+          parseRetryAfter(res.headers.get("retry-after")),
+        );
+      }
+      const buf = Buffer.from(await res.arrayBuffer());
+      const charset = detectCharset(res.headers.get("content-type"), buf);
+      return iconv.decode(buf, charset);
+    } catch (error) {
+      const retryable = !(error instanceof HttpStatusError) || error.retryable;
+      if (!retryable || attempt >= retries) throw error;
+
+      const retryAfterMs = error instanceof HttpStatusError ? error.retryAfterMs : null;
+      // 서버가 긴 대기를 명시했다면 값을 무시해 일찍 재요청하지 않고 다음 정기 수집에 맡긴다.
+      if (retryAfterMs != null && retryAfterMs > 60_000) throw error;
+
+      const waitMs = retryAfterMs ?? Math.min(retryBaseMs * 2 ** attempt, 60_000);
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `[http] ${requestHost(url)} 요청 실패 (${reason}); ${waitMs}ms 후 재시도 ${attempt + 2}/${retries + 1}`,
+      );
+      await sleep(waitMs);
+    }
+  }
+
+  throw new Error(`요청 재시도 소진 — ${url}`); // 반복문 구조상 도달하지 않음
 }
