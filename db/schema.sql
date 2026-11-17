@@ -33,3 +33,16 @@ create table if not exists app_meta (
   value timestamptz not null default now()
 );
 insert into app_meta (key, value) values ('last_refresh', 'epoch') on conflict (key) do nothing;
+
+-- 미국 Actions -> 서울 수집 함수에 쓰는 일회용 실행권. Data API에 노출하지 않는다.
+create schema if not exists notice_internal;
+revoke all on schema notice_internal from public;
+create table if not exists notice_internal.scrape_tickets (
+  token_hash text primary key,
+  source_id text not null,
+  since_date date,
+  max_pages integer not null check (max_pages between 1 and 200),
+  expires_at timestamptz not null
+);
+alter table notice_internal.scrape_tickets enable row level security;
+revoke all on notice_internal.scrape_tickets from public;

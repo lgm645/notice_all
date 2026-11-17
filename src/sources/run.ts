@@ -35,6 +35,7 @@ export function rejectFuturePublishedDates(items: NoticeItem[], today = new Date
 
 export interface RunOpts {
   sourceId?: string;
+  sourceIds?: string[];
   concurrent?: boolean;
   dry?: boolean;
   since?: string;
@@ -47,7 +48,7 @@ export async function runScrape(opts: RunOpts = {}, onResult?: (r: RunResult) =>
   const started = Date.now();
   const deadline = started + (opts.budgetMs ?? 12*60_000);
   const maxPages = Math.min(200, Math.max(1, Math.floor(opts.maxPages ?? 100)));
-  const targets = SOURCES.filter(s => s.enabled && (!opts.sourceId || s.id === opts.sourceId));
+  const targets = SOURCES.filter(s => s.enabled && (!opts.sourceId || s.id === opts.sourceId) && (!opts.sourceIds || opts.sourceIds.includes(s.id)));
   if (!targets.length) throw new Error('수집 대상이 없습니다');
   if (opts.since) coverageFloor(started, null, opts.since);
   const lease = opts.dry ? null : await claimScrapeLease();

@@ -53,6 +53,7 @@ jobs:
           DB_DRIVER: postgres
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SCRAPER_CONTACT: ${{ secrets.SCRAPER_CONTACT }}
+          SCRAPER_REMOTE_ORIGIN: https://notice-all-h7ls.vercel.app
           BACKFILL_SINCE: ${{ inputs.since }}
         run: |
           args=()

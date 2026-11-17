@@ -1,5 +1,6 @@
 import type { NoticeItem } from "./types";
 import { makeNoticeId } from "./normalize";
+import { createHash, randomBytes } from 'node:crypto';
 
 // ── DB 드라이버 추상화 ────────────────────────────────────────────
 // 로컬:  PGlite (임베디드 Postgres, WASM) — 외부 서비스 불필요
@@ -271,6 +272,26 @@ export async function getCollectionHealth(sourceIds: string[], staleHours = 8) {
     return { id, lastSuccessMs, stale: !lastSuccessMs || now-lastSuccessMs > staleHours*3_600_000 };
   });
   return { healthy: sources.every(s => !s.stale), staleHours, sources };
+}
+
+export async function mintRemoteTicket(sourceId: string, since: string | undefined, maxPages = 100): Promise<string> {
+  const d = await driver();
+  const token = randomBytes(32).toString('hex');
+  const hash = createHash('sha256').update(token).digest('hex');
+  await d.query('delete from notice_internal.scrape_tickets where expires_at < now()');
+  await d.query(`insert into notice_internal.scrape_tickets(token_hash,source_id,since_date,max_pages,expires_at)
+    values($1,$2,$3::date,$4,now()+interval '2 minutes')`, [hash,sourceId,since ?? null,maxPages]);
+  return token;
+}
+
+export async function redeemRemoteTicket(token: string): Promise<{sourceId:string; since?:string; maxPages:number} | null> {
+  if (!/^[a-f0-9]{64}$/.test(token)) return null;
+  const d = await driver();
+  const hash = createHash('sha256').update(token).digest('hex');
+  const rows = await d.query(`delete from notice_internal.scrape_tickets
+    where token_hash=$1 and expires_at > now()
+    returning source_id,since_date::text as since,max_pages`, [hash]);
+  return rows[0] ? {sourceId:String(rows[0].source_id),since:rows[0].since ?? undefined,maxPages:Number(rows[0].max_pages)} : null;
 }
 
 // 쿨다운이 지났을 때만 last_refresh 를 now() 로 원자적 갱신(동시 클릭/중복 수집 방지).

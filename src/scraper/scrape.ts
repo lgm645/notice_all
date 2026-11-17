@@ -1,7 +1,9 @@
 import "dotenv/config";
 import { appendFile } from "node:fs/promises";
 import { runScrape, type RunResult } from "../sources/run";
-import { endDb } from "../lib/db";
+import { endDb, setMetaTime } from "../lib/db";
+import { SOURCES } from "../sources/config";
+import { collectInSeoul } from "./remote";
 import { log } from "../lib/logger";
 
 // 사용법:
@@ -58,50 +60,53 @@ async function writeGithubSummary(results: RunResult[], totalNew: number): Promi
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  const started=Date.now();
   log.info(`수집 시작${args.dry ? " (dry-run)" : ""}`);
-
-  const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape(
-    { sourceId: args.source, dry: args.dry, since: args.since, maxPages: args.maxPages },
-    (r) => {
-      if (r.error || r.pending) {
-        const message = r.error ?? '페이지 한도 도달 — 과거 글 보충 미완료';
-        log.error(`[${r.source}] 수집 미완료 — ${message} (저장 ${r.total ?? 0}건)`);
-        if (process.env.GITHUB_ACTIONS === "true") {
-          console.error(`::error title=공지 수집 실패 · ${r.source}::${workflowEscape(message)}`);
-        }
-      } else if (args.dry) {
-        log.info(`[${r.source}] (dry) ${r.total}건 파싱됨. 상위:`);
-        for (const it of r.samples ?? []) {
-          const flag = it.isFixed ? "📌" : "  ";
-          const clip = it.hasAttachment ? "📎" : "";
-          log.info(`   ${flag} ${it.publishedDate ?? "????-??-??"} [${it.category}] ${it.title} ${clip}`);
-        }
-      } else {
-        log.info(`[${r.source}] ${r.pages}페이지 / ${r.total}건 (신규 ${r.inserted} / 갱신 ${r.updated})`);
-      }
-      if (r.rejectedFutureDates) {
-        log.warn(`[${r.source}] 미래 게시일 ${r.rejectedFutureDates}건 차단`);
-      }
-    },
-  );
-
-  const ok = results.filter((r) => !r.error && !r.pending).length;
+  const targets=SOURCES.filter(s=>s.enabled && (!args.source || s.id===args.source));
+  if (!targets.length) throw new Error('수집 대상이 없습니다');
+  const remoteOrigin=args.dry ? undefined : process.env.SCRAPER_REMOTE_ORIGIN;
+  const remote=targets.filter(s=>remoteOrigin && ['www.knu.ac.kr','home.knu.ac.kr'].includes(new URL(s.listUrl).hostname));
+  const local=targets.filter(s=>!remote.some(r=>r.id===s.id));
+  const report=(r:RunResult)=>{
+    if (r.error || r.pending) {
+      const message=r.error ?? '페이지 한도 도달 — 과거 글 보충 미완료';
+      log.error(`[${r.source}] 수집 미완료 — ${message} (저장 ${r.total ?? 0}건)`);
+      if (process.env.GITHUB_ACTIONS==='true') console.error(`::error title=공지 수집 실패 · ${r.source}::${workflowEscape(message)}`);
+    } else {
+      log.info(`[${r.source}] ${r.pages}페이지 / ${r.total}건 (신규 ${r.inserted ?? 0} / 갱신 ${r.updated ?? 0})`);
+      if (args.dry) for(const item of r.samples ?? []) log.info(`  ${item.publishedDate ?? '날짜 없음'} ${item.title}`);
+    }
+    if (r.rejectedFutureDates) log.warn(`[${r.source}] 미래 게시일 ${r.rejectedFutureDates}건 차단`);
+  };
+  let results:RunResult[]=[];
+  let repairedDates=0;
+  if (local.length) {
+    const localResult=await runScrape({sourceIds:local.map(s=>s.id),dry:args.dry,since:args.since,maxPages:args.maxPages},report);
+    results=localResult.results;
+    repairedDates=localResult.repairedDates;
+  }
+  for (const source of remote) {
+    let result:RunResult;
+    log.info(`[${source.id}] 서울 서버에서 수집`);
+    try { result=await collectInSeoul(remoteOrigin!,source.id,args.since,args.maxPages); }
+    catch(error) { result={source:source.id,error:error instanceof Error ? error.message : String(error),pending:true}; }
+    results.push(result);
+    report(result);
+  }
+  const totalNew=results.reduce((sum,r)=>sum+(r.inserted??0),0);
+  const rejectedFutureDates=results.reduce((sum,r)=>sum+(r.rejectedFutureDates??0),0);
+  const ok=results.filter(r=>!r.error && !r.pending).length;
+  if (!args.dry && !args.source && ok===targets.length) await setMetaTime('last_full_refresh',started);
   log.info(`완료 — 성공 ${ok}/${results.length} 소스, 신규 ${totalNew}건`);
-  if (rejectedFutureDates || repairedDates) {
-    log.warn(`날짜 보호 — 유입 차단 ${rejectedFutureDates}건 / 기존 데이터 복구 ${repairedDates}건`);
-  }
-  try {
-    await writeGithubSummary(results, totalNew);
-  } catch (e) {
-    log.warn(`GitHub 실행 요약 작성 실패 — ${e instanceof Error ? e.message : String(e)}`);
-  }
-  if (ok < results.length) process.exitCode = 1;
-
+  if (rejectedFutureDates || repairedDates) log.warn(`날짜 보호 — 유입 차단 ${rejectedFutureDates}건 / 기존 데이터 복구 ${repairedDates}건`);
+  try { await writeGithubSummary(results,totalNew); }
+  catch(error) { log.warn(`GitHub 실행 요약 작성 실패 — ${error instanceof Error ? error.message : String(error)}`); }
+  if (ok<results.length) process.exitCode=1;
   await endDb();
 }
 
-main().catch(async (e) => {
-  log.error(e);
-  await endDb().catch(() => {});
+main().catch(async error=>{
+  log.error(error);
+  await endDb().catch(()=>{});
   process.exit(1);
 });

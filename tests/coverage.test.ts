@@ -5,7 +5,7 @@ import { coverageFloor, pageCoversFloor } from '../src/sources/coverage';
 import { SOURCES } from '../src/sources/config';
 import { ADAPTERS } from '../src/sources/registry';
 import { runScrape } from '../src/sources/run';
-import { endDb, getMetaTime, getNotices, initSchema, upsertNotices } from '../src/lib/db';
+import { endDb, getMetaTime, getNotices, initSchema, mintRemoteTicket, redeemRemoteTicket, upsertNotices } from '../src/lib/db';
 import type { NoticeItem } from '../src/lib/types';
 import { homeKnuCmsAdapter } from '../src/sources/adapters/home-knu-cms';
 
@@ -21,6 +21,10 @@ test('고정 공지에 속지 않고 뒤로 밀린 누락 복구·중단 재개�
   const pages=[[pinned,known],[pinned,missing],[pinned,old]];
   try {
     await initSchema(await readFile('db/schema.sql','utf8'));
+    const ticket=await mintRemoteTicket('coverage-test','2026-10-20',5);
+    assert.deepEqual(await redeemRemoteTicket(ticket),{sourceId:'coverage-test',since:'2026-10-20',maxPages:5});
+    assert.equal(await redeemRemoteTicket(ticket),null,'실행권은 재사용할 수 없다');
+    assert.equal(await redeemRemoteTicket('invalid'),null);
     SOURCES.splice(0,SOURCES.length,{id:'coverage-test',name:'테스트',category:'소식',platform:'coverage-test',listUrl:'https://example.com',enabled:true});
     ADAPTERS['coverage-test']={platform:'coverage-test',fetchList:async source=>pages[Number(source.options?.startPage??1)-1]??[]};
     await upsertNotices([pinned,known]);
