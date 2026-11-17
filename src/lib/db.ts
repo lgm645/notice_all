@@ -249,7 +249,8 @@ export async function setMetaTime(key: string, ms: number): Promise<void> {
 export async function claimScrapeLease(): Promise<string | null> {
   const d = await driver();
   await ensureMeta(d);
-  const rows = await d.query(`insert into app_meta(key,value) values('scrape_lease',now()+interval '16 minutes')
+  // postgres.js의 timestamptz 직렬화는 밀리초 정밀도이므로 소유권 값도 같은 정밀도로 저장한다.
+  const rows = await d.query(`insert into app_meta(key,value) values('scrape_lease',date_trunc('milliseconds',now()+interval '16 minutes'))
     on conflict(key) do update set value=excluded.value where app_meta.value < now()
     returning value::text as lease`);
   return rows[0]?.lease ?? null;
@@ -257,7 +258,7 @@ export async function claimScrapeLease(): Promise<string | null> {
 
 export async function releaseScrapeLease(lease: string): Promise<void> {
   const d = await driver();
-  await d.query("delete from app_meta where key='scrape_lease' and value=$1::timestamptz", [lease]);
+  await d.query("delete from app_meta where key='scrape_lease' and date_trunc('milliseconds',value)=$1::timestamptz", [lease]);
 }
 
 export async function getCollectionHealth(sourceIds: string[], staleHours = 8) {
