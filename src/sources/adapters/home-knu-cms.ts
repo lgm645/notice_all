@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
-import type { NoticeItem, SourceAdapter, SourceConfig } from "../../lib/types";
+import type { FetchContext, NoticeItem, SourceAdapter, SourceConfig } from "../../lib/types";
 import { cleanText, isStandaloneDate, normDate, parseIntSafe, resolveUrl, toKstIso } from "../../lib/normalize";
 
 // ── home-knu CMS 어댑터 ───────────────────────────────────────────
@@ -94,17 +94,50 @@ function parseRow($: CheerioAPI, tr: AnyNode, source: SourceConfig): NoticeItem 
   };
 }
 
+// 실제 페이지 링크에서 code/table/nav_code와 페이지 크기를 얻는다.
+const pagination = new WeakMap<FetchContext, { url: URL; params: URLSearchParams; size: number } | null>();
+
+function rememberPagination(html: string, source: SourceConfig, ctx: FetchContext) {
+  const $ = cheerio.load(html);
+  let template: { url: URL; params: URLSearchParams; size: number } | null = null;
+  $('a[href*="mv_data="]').each((_, a) => {
+    if (template || cleanText($(a).text()) !== '2') return;
+    const url = new URL($(a).attr('href')!, source.listUrl);
+    const encoded = url.searchParams.get('mv_data')?.replace(/\|+$/, '');
+    if (!encoded) return;
+    const params = new URLSearchParams(Buffer.from(encoded, 'base64').toString('utf8'));
+    const size = Number(params.get('startPage'));
+    if (Number.isInteger(size) && size > 0) template = { url, params, size };
+  });
+  pagination.set(ctx, template);
+}
+
 export const homeKnuCmsAdapter: SourceAdapter = {
   platform: "home-knu-cms",
-  // 목록 1페이지만 수집(최신). 다음 페이지는 base64 mv_data 안 startPage 를 만들어야 해 추후 확장.
   async fetchList(source, ctx) {
-    const html = await ctx.fetchHtml(source.listUrl);
-    const $ = cheerio.load(html);
     const items: NoticeItem[] = [];
-    $("table tr").each((_, tr) => {
-      const it = parseRow($, tr, source);
-      if (it) items.push(it);
-    });
+    const start = Number(source.options?.startPage ?? 1);
+    const pages = Number(source.options?.pages ?? 1);
+    for (let page = start; page < start + pages; page++) {
+      let url = source.listUrl;
+      if (page > 1) {
+        if (!pagination.has(ctx)) rememberPagination(await ctx.fetchHtml(source.listUrl), source, ctx);
+        const template = pagination.get(ctx);
+        if (!template) break;
+        const params = new URLSearchParams(template.params);
+        params.set('startPage', String((page - 1) * template.size));
+        const target = new URL(template.url);
+        target.searchParams.set('mv_data', Buffer.from(params.toString()).toString('base64') + '||');
+        url = target.toString();
+      }
+      const html = await ctx.fetchHtml(url);
+      if (page === 1) rememberPagination(html, source, ctx);
+      const $ = cheerio.load(html);
+      $("table tr").each((_, tr) => {
+        const it = parseRow($, tr, source);
+        if (it) items.push(it);
+      });
+    }
     return items;
   },
 };

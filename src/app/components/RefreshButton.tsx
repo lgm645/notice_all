@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 // - 마지막 새로고침으로부터 N분 경과 표시
 // - 쿨다운(서버 강제) 동안은 "M분 후 가능"으로 비활성
 // - 누르면 전체 소스 동시 수집 후 화면 갱신
-type Status = { lastRefreshMs: number | null; cooldownMin: number };
+type Status = { lastRefreshMs: number | null; cooldownMin: number; staleSources: string[] };
 
 export default function RefreshButton() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function RefreshButton() {
     try {
       const r = await fetch("/api/refresh", { cache: "no-store" });
       const j = await r.json();
-      setSt({ lastRefreshMs: j.lastRefreshMs ?? null, cooldownMin: Number(j.cooldownMin ?? 10) });
+      setSt({ lastRefreshMs: j.lastRefreshMs ?? null, cooldownMin: Number(j.cooldownMin ?? 10), staleSources:j.staleSources ?? [] });
     } catch {
       /* ignore */
     }
@@ -52,9 +52,12 @@ export default function RefreshButton() {
       const r = await fetch("/api/refresh", { method: "POST" });
       const j = await r.json().catch(() => ({}));
       if (r.ok && j.ok) {
-        setMsg(`갱신 완료 · 신규 ${j.inserted ?? 0}건`);
+        setMsg(j.partial ? `일부 갱신 · 신규 ${j.inserted ?? 0}건 · 미완료 ${j.pendingSources?.length ?? 0}곳` : `갱신 완료 · 신규 ${j.inserted ?? 0}건`);
         await loadStatus();
         router.refresh();
+        setTimeout(() => setMsg(null), 4000);
+      } else if (r.status === 409) {
+        setMsg('이미 수집 중입니다. 잠시 후 확인해 주세요');
         setTimeout(() => setMsg(null), 4000);
       } else if (r.status === 429) {
         setMsg(`아직 쿨다운 · 약 ${Math.max(1, Math.ceil((j.remainingSec ?? 0) / 60))}분 후`);
@@ -80,7 +83,7 @@ export default function RefreshButton() {
       <button className="refresh-btn" onClick={onClick} disabled={busy || !canRefresh}>
         {busy ? "⏳ 수집 중…" : canRefresh ? "🔄 지금 새로고침" : `🔄 ${remainingMin}분 후 가능`}
       </button>
-      <span className="refresh-meta">{msg ?? lastLabel}</span>
+      <span className="refresh-meta">{msg ?? (st?.staleSources.length ? `${lastLabel} · ${st.staleSources.length}개 출처 갱신 지연` : lastLabel)}</span>
     </div>
   );
 }

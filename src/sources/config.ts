@@ -19,7 +19,7 @@ export const SOURCES: SourceConfig[] = [
     // 2026-08 홈페이지 개편으로 기존 sub5_1 폐기 → 새 "학부 공지사항" 게시판.
     listUrl: "https://cse.knu.ac.kr/bbs/board.php?bo_table=sub6_1_a&lang=kor",
     enabled: true,
-    options: { pages: 1, delayMs: POLITE },
+    options: { pages: 1, delayMs: 10_000 }, // 원본 Crawl-delay: 10
   },
   {
     id: "startup",

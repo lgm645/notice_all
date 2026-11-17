@@ -62,14 +62,15 @@ export const seeAdapter: SourceAdapter = {
   async fetchList(source, ctx) {
     const pages = Number(source.options?.pages ?? 1);
     const items: NoticeItem[] = [];
-    for (let page = 1; page <= pages; page++) {
+    const start = Number(source.options?.startPage ?? 1);
+    for (let page = start; page < start + pages; page++) {
       const html = await ctx.fetchHtml(setPage(source.listUrl, page));
       const $ = cheerio.load(html);
       $("table tr").each((_, tr) => {
         const it = parseRow($, tr, source);
         if (it) items.push(it);
       });
-      if (page < pages) await ctx.delay();
+      if (page < start + pages - 1) await ctx.delay();
     }
     return items;
   },

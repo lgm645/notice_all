@@ -27,6 +27,7 @@ export interface SourceConfig {
   enabled: boolean; // 수집 on/off (robots 정책·점검 등에 사용)
   options?: {
     pages?: number; // 한 번에 긁을 목록 페이지 수
+    startPage?: number; // 공용 수집기가 한 페이지씩 이어 읽는 시작 위치
     delayMs?: number; // 요청 사이 지연 (정중한 크롤링)
     [k: string]: unknown; // 플랫폼별 추가 옵션
   };

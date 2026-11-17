@@ -230,6 +230,49 @@ export async function touchLastRefresh(): Promise<void> {
   );
 }
 
+// 성공 체크포인트는 모든 페이지를 확인한 경우에만 전진시킨다.
+export async function getMetaTime(key: string): Promise<number | null> {
+  const d = await driver();
+  await ensureMeta(d);
+  const rows = await d.query('select extract(epoch from value) * 1000 as ms from app_meta where key=$1', [key]);
+  return rows[0] ? Number(rows[0].ms) : null;
+}
+
+export async function setMetaTime(key: string, ms: number): Promise<void> {
+  const d = await driver();
+  await ensureMeta(d);
+  await d.query(`insert into app_meta(key,value) values($1,$2::timestamptz)
+    on conflict(key) do update set value=greatest(app_meta.value,excluded.value)`, [key, new Date(ms).toISOString()]);
+}
+
+export async function claimScrapeLease(): Promise<string | null> {
+  const d = await driver();
+  await ensureMeta(d);
+  const rows = await d.query(`insert into app_meta(key,value) values('scrape_lease',now()+interval '16 minutes')
+    on conflict(key) do update set value=excluded.value where app_meta.value < now()
+    returning value::text as lease`);
+  return rows[0]?.lease ?? null;
+}
+
+export async function releaseScrapeLease(lease: string): Promise<void> {
+  const d = await driver();
+  await d.query("delete from app_meta where key='scrape_lease' and value=$1::timestamptz", [lease]);
+}
+
+export async function getCollectionHealth(sourceIds: string[], staleHours = 8) {
+  const d = await driver();
+  await ensureMeta(d);
+  const rows = await d.query('select key,extract(epoch from value)*1000 as ms from app_meta where key=any($1::text[])',
+    [sourceIds.map(id => `source_success:${id}`)]);
+  const times = new Map(rows.map(r => [String(r.key), Number(r.ms)]));
+  const now = Date.now();
+  const sources = sourceIds.map(id => {
+    const lastSuccessMs = times.get(`source_success:${id}`) ?? null;
+    return { id, lastSuccessMs, stale: !lastSuccessMs || now-lastSuccessMs > staleHours*3_600_000 };
+  });
+  return { healthy: sources.every(s => !s.stale), staleHours, sources };
+}
+
 // 쿨다운이 지났을 때만 last_refresh 를 now() 로 원자적 갱신(동시 클릭/중복 수집 방지).
 // 갱신에 성공하면 ok=true(이 호출이 새로고침 슬롯을 차지). 아니면 남은 초를 반환.
 export async function claimRefresh(

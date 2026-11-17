@@ -74,14 +74,15 @@ export const gnuboardAdapter: SourceAdapter = {
     const pages = Number(source.options?.pages ?? 1);
     const items: NoticeItem[] = [];
 
-    for (let page = 1; page <= pages; page++) {
+    const start = Number(source.options?.startPage ?? 1);
+    for (let page = start; page < start + pages; page++) {
       const html = await ctx.fetchHtml(withPage(source.listUrl, page));
       const $ = cheerio.load(html);
       $("table tbody tr").each((_, tr) => {
         const item = parseRow($, tr, source);
         if (item) items.push(item);
       });
-      if (page < pages) await ctx.delay();
+      if (page < start + pages - 1) await ctx.delay();
     }
     return items;
   },

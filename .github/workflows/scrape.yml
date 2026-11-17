@@ -1,10 +1,15 @@
 name: 공지 자동 수집
 
-# 주기 수집: 1시간마다 (매시 정각). 수동 실행도 가능.
+# 매시 정각 부하를 피해 17분에 실행. 지연은 watchdog에서 별도 감시.
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      since:
+        description: '과거 보충 시작일 YYYY-MM-DD (비우면 성공 체크포인트 기준)'
+        required: false
+        type: string
 
 concurrency:
   group: scrape
@@ -12,6 +17,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   scrape:
@@ -19,6 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: 예약 수집 비활동 자동중지 방지
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/scrape.yml/enable"
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/watchdog.yml/enable"
+
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
@@ -40,4 +53,8 @@ jobs:
           DB_DRIVER: postgres
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SCRAPER_CONTACT: ${{ secrets.SCRAPER_CONTACT }}
-        run: npm run scrape
+          BACKFILL_SINCE: ${{ inputs.since }}
+        run: |
+          args=()
+          if [ -n "$BACKFILL_SINCE" ]; then args+=(--since "$BACKFILL_SINCE"); fi
+          npm run scrape -- "${args[@]}"

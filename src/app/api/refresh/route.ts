@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
-import { claimRefresh, getLastRefreshMs } from "../../../lib/db";
-import { runScrape } from "../../../sources/run";
+import { claimRefresh, getCollectionHealth, getLastRefreshMs } from "../../../lib/db";
+import { runScrape, ScrapeBusyError } from "../../../sources/run";
+import { SOURCES } from "../../../sources/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,12 +23,14 @@ export async function GET() {
   const remainingSec = valid
     ? Math.max(0, COOLDOWN_MIN * 60 - Math.floor((now - valid) / 1000))
     : 0;
+  const health = await getCollectionHealth(SOURCES.filter(s=>s.enabled).map(s=>s.id)).catch(()=>null);
   return Response.json({
     lastRefreshMs: valid,
     cooldownMin: COOLDOWN_MIN,
     remainingSec,
     canRefresh: remainingSec === 0,
     serverNowMs: now,
+    staleSources: health?.sources.filter(s=>s.stale).map(s=>s.id) ?? [],
   });
 }
 
@@ -51,18 +54,21 @@ export async function POST() {
   }
 
   try {
-    const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape({ concurrent: true, delayMs: 0 });
+    const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape({ concurrent: true, quick:true, maxPages:2, budgetMs:44_000 });
     revalidateTag("notices", { expire: 0 }); // Route Handler에서 즉시 만료 → 새 데이터 바로 반영
     const ok = results.filter((r) => !r.error).length;
     return Response.json({
-      ok: true,
+      ok: ok > 0,
+      partial: results.some(r=>r.error || r.pending),
+      pendingSources: results.filter(r=>r.error || r.pending).map(r=>r.source),
       sources: `${ok}/${results.length}`,
       inserted: totalNew,
       rejectedFutureDates,
       repairedDates,
       cooldownMin: COOLDOWN_MIN,
-    });
+    }, { status: ok > 0 ? 200 : 503 });
   } catch (e) {
+    if (e instanceof ScrapeBusyError) return Response.json({ ok:false, reason:'busy' }, {status:409});
     return Response.json(
       { ok: false, reason: "error", message: e instanceof Error ? e.message : String(e) },
       { status: 500 },

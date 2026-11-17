@@ -10,12 +10,18 @@ import { log } from "../lib/logger";
 //   tsx src/scraper/scrape.ts --source cse --dry  # DB 저장 없이 파싱 결과만 출력
 
 function parseArgs(argv: string[]) {
-  const out: { source?: string; all?: boolean; dry?: boolean } = {};
+  const out: { source?: string; all?: boolean; dry?: boolean; since?: string; maxPages?: number } = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--source") out.source = argv[++i];
     else if (a === "--all") out.all = true;
     else if (a === "--dry") out.dry = true;
+    else if (a === "--since") out.since = argv[++i];
+    else if (a === "--max-pages") {
+      out.maxPages = Number(argv[++i]);
+      if (!Number.isInteger(out.maxPages) || out.maxPages < 1 || out.maxPages > 200) throw new Error('max-pages는 1~200 정수여야 합니다');
+    }
+    else throw new Error(`알 수 없는 인자: ${a}`);
   }
   return out;
 }
@@ -31,9 +37,9 @@ function markdownCell(s: string): string {
 async function writeGithubSummary(results: RunResult[], totalNew: number): Promise<void> {
   const path = process.env.GITHUB_STEP_SUMMARY;
   if (!path) return;
-  const failed = results.filter((r) => r.error);
+  const failed = results.filter((r) => r.error || r.pending);
   const rows = results.map((r) =>
-    `| ${r.source} | ${r.error ? `❌ ${markdownCell(r.error)}` : "✅ 성공"} | ${r.total ?? "-"} | ${r.inserted ?? 0} |`,
+    `| ${r.source} | ${r.error ? `❌ ${markdownCell(r.error)}` : r.pending ? '⚠ 과거 글 보충 미완료' : "✅ 성공"} | ${r.pages ?? 0} | ${r.total ?? "-"} | ${r.inserted ?? 0} |`,
   );
   const body = [
     "# 공지 자동 수집 결과",
@@ -42,8 +48,8 @@ async function writeGithubSummary(results: RunResult[], totalNew: number): Promi
     `- 성공: **${results.length - failed.length}개** / 실패: **${failed.length}개**`,
     `- 신규 공지: **${totalNew}건**`,
     "",
-    "| 출처 | 상태 | 수집 건수 | 신규 |",
-    "|---|---|---:|---:|",
+    "| 출처 | 상태 | 확인 페이지 | 수집 건수 | 신규 |",
+    "|---|---|---:|---:|---:|",
     ...rows,
     "",
   ].join("\n");
@@ -55,12 +61,13 @@ async function main() {
   log.info(`수집 시작${args.dry ? " (dry-run)" : ""}`);
 
   const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape(
-    { sourceId: args.source, dry: args.dry }, // 순차(정중) 모드
+    { sourceId: args.source, dry: args.dry, since: args.since, maxPages: args.maxPages },
     (r) => {
-      if (r.error) {
-        log.error(`[${r.source}] 수집 실패 — ${r.error}`);
+      if (r.error || r.pending) {
+        const message = r.error ?? '페이지 한도 도달 — 과거 글 보충 미완료';
+        log.error(`[${r.source}] 수집 미완료 — ${message} (저장 ${r.total ?? 0}건)`);
         if (process.env.GITHUB_ACTIONS === "true") {
-          console.error(`::error title=공지 수집 실패 · ${r.source}::${workflowEscape(r.error)}`);
+          console.error(`::error title=공지 수집 실패 · ${r.source}::${workflowEscape(message)}`);
         }
       } else if (args.dry) {
         log.info(`[${r.source}] (dry) ${r.total}건 파싱됨. 상위:`);
@@ -70,7 +77,7 @@ async function main() {
           log.info(`   ${flag} ${it.publishedDate ?? "????-??-??"} [${it.category}] ${it.title} ${clip}`);
         }
       } else {
-        log.info(`[${r.source}] ${r.total}건 (신규 ${r.inserted} / 갱신 ${r.updated})`);
+        log.info(`[${r.source}] ${r.pages}페이지 / ${r.total}건 (신규 ${r.inserted} / 갱신 ${r.updated})`);
       }
       if (r.rejectedFutureDates) {
         log.warn(`[${r.source}] 미래 게시일 ${r.rejectedFutureDates}건 차단`);
@@ -78,7 +85,7 @@ async function main() {
     },
   );
 
-  const ok = results.filter((r) => !r.error).length;
+  const ok = results.filter((r) => !r.error && !r.pending).length;
   log.info(`완료 — 성공 ${ok}/${results.length} 소스, 신규 ${totalNew}건`);
   if (rejectedFutureDates || repairedDates) {
     log.warn(`날짜 보호 — 유입 차단 ${rejectedFutureDates}건 / 기존 데이터 복구 ${repairedDates}건`);

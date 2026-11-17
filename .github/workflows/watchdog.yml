@@ -1,0 +1,40 @@
+name: 공지 수집 지연 감시
+
+on:
+  schedule:
+    - cron: '31 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: notice-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 두 예약 워크플로 활성 유지
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/scrape.yml/enable"
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/watchdog.yml/enable"
+
+      - name: 출처별 성공 체크포인트 감시 및 복구 요청
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if curl --fail --silent --show-error --max-time 30 --retry 2 \
+            https://notice-all-h7ls.vercel.app/api/health > health.json; then
+            echo '모든 출처가 최근 8시간 내 과거 보충까지 완료됐습니다.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh workflow run scrape.yml --repo "$GITHUB_REPOSITORY" --ref main
+            echo '::error::8시간 이상 수집 지연 또는 상태 확인 실패 — 전체 수집 재실행을 요청했습니다.'
+            echo '수집 지연을 감지하여 자동 재실행을 요청했습니다. scrape 실행 결과를 확인해 주세요.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
