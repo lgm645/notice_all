@@ -4,8 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { coverageFloor, pageCoversFloor } from '../src/sources/coverage';
 import { SOURCES } from '../src/sources/config';
 import { ADAPTERS } from '../src/sources/registry';
-import { runScrape } from '../src/sources/run';
-import { endDb, getMetaTime, getNotices, initSchema, mintRemoteTicket, redeemRemoteTicket, upsertNotices } from '../src/lib/db';
+import { runScrape, ScrapeBusyError } from '../src/sources/run';
+import { claimScrapeLease, endDb, getMetaTime, getNotices, initSchema, mintRemoteTicket, redeemRemoteTicket, releaseScrapeLease, upsertNotices } from '../src/lib/db';
+import { retryScrapeBusy } from '../src/scraper/retry-busy';
 import type { NoticeItem } from '../src/lib/types';
 import { homeKnuCmsAdapter } from '../src/sources/adapters/home-knu-cms';
 
@@ -31,7 +32,22 @@ test('고정 공지에 속지 않고 뒤로 밀린 누락 복구·중단 재개�
     assert.equal(pageCoversFloor([pinned,known],'2026-10-20'),false);
     assert.equal(pageCoversFloor([pinned,old],'2026-10-20'),true);
     assert.equal(coverageFloor(Date.parse('2026-11-17T00:00:00Z'),Date.parse('2026-10-20T00:00:00Z')),'2026-10-13');
-    const partial=await runScrape({since:'2026-10-20',maxPages:1});
+    const lease = await claimScrapeLease();
+    assert.ok(lease);
+    let waitedForLease = false;
+    const partial = await retryScrapeBusy(async () => {
+      try {
+        return await runScrape({ since: '2026-10-20', maxPages: 1 });
+      } catch (error) {
+        if (error instanceof ScrapeBusyError) {
+          waitedForLease = true;
+          await releaseScrapeLease(lease);
+        }
+        throw error;
+      }
+    }, { waitMs: 1000, intervalMs: 5 });
+    assert.equal(waitedForLease, true);
+    assert.equal(await getMetaTime('scrape_lease'), null);
     assert.equal(partial.results[0].pending,true);
     assert.equal(await getMetaTime('source_success:coverage-test'),null);
     const complete=await runScrape({since:'2026-10-20',maxPages:5});

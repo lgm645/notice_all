@@ -4,6 +4,7 @@ import { runScrape, type RunResult } from "../sources/run";
 import { endDb, setMetaTime } from "../lib/db";
 import { SOURCES } from "../sources/config";
 import { collectInSeoul } from "./remote";
+import { retryScrapeBusy } from "./retry-busy";
 import { log } from "../lib/logger";
 
 // 사용법:
@@ -81,7 +82,12 @@ async function main() {
   let results:RunResult[]=[];
   let repairedDates=0;
   if (local.length) {
-    const localResult=await runScrape({sourceIds:local.map(s=>s.id),dry:args.dry,since:args.since,maxPages:args.maxPages},report);
+    const localResult = await retryScrapeBusy(() => runScrape({
+      sourceIds: local.map(s => s.id),
+      dry: args.dry,
+      since: args.since,
+      maxPages: args.maxPages,
+    }, report));
     results=localResult.results;
     repairedDates=localResult.repairedDates;
   }
