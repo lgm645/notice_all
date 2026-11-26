@@ -3,11 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// 사용자 수동 새로고침 버튼.
-// - 마지막 새로고침으로부터 N분 경과 표시
-// - 쿨다운(서버 강제) 동안은 "M분 후 가능"으로 비활성
-// - 누르면 전체 소스 동시 수집 후 화면 갱신
-type Status = { lastRefreshMs: number | null; cooldownMin: number; staleSources: string[] };
+type Status = { lastRefreshMs: number | null; staleSources: string[] };
 
 export default function RefreshButton() {
   const router = useRouter();
@@ -20,7 +16,7 @@ export default function RefreshButton() {
     try {
       const r = await fetch("/api/refresh", { cache: "no-store" });
       const j = await r.json();
-      setSt({ lastRefreshMs: j.lastRefreshMs ?? null, cooldownMin: Number(j.cooldownMin ?? 10), staleSources:j.staleSources ?? [] });
+      setSt({ lastRefreshMs: j.lastRefreshMs ?? null, staleSources: j.staleSources ?? [] });
     } catch {
       /* ignore */
     }
@@ -30,24 +26,26 @@ export default function RefreshButton() {
     loadStatus();
   }, [loadStatus]);
 
-  // 20초마다 경과/남은 시간 표시 갱신
+  // 20초마다 마지막 갱신으로부터 경과한 시간 표시 갱신
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 20_000);
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    if (busy || !msg) return;
+    const id = setTimeout(() => setMsg(null), 4000);
+    return () => clearTimeout(id);
+  }, [busy, msg]);
+
   const now = Date.now();
   const last = st?.lastRefreshMs ?? null;
-  const cooldownMin = st?.cooldownMin ?? 10;
-  const elapsedMin = last ? Math.floor((now - last) / 60_000) : null;
-  const remainingSec = last ? Math.max(0, cooldownMin * 60 - Math.floor((now - last) / 1000)) : 0;
-  const remainingMin = Math.max(1, Math.ceil(remainingSec / 60));
-  const canRefresh = remainingSec === 0;
+  const elapsedMin = last ? Math.max(0, Math.floor((now - last) / 60_000)) : null;
 
   const onClick = async () => {
-    if (busy || !canRefresh) return;
+    if (busy) return;
     setBusy(true);
-    setMsg("수집 중…");
+    setMsg(null);
     try {
       const r = await fetch("/api/refresh", { method: "POST" });
       const j = await r.json().catch(() => ({}));
@@ -55,35 +53,29 @@ export default function RefreshButton() {
         setMsg(j.partial ? `일부 갱신 · 신규 ${j.inserted ?? 0}건 · 미완료 ${j.pendingSources?.length ?? 0}곳` : `갱신 완료 · 신규 ${j.inserted ?? 0}건`);
         await loadStatus();
         router.refresh();
-        setTimeout(() => setMsg(null), 4000);
       } else if (r.status === 409) {
-        setMsg('이미 수집 중입니다. 잠시 후 확인해 주세요');
-        setTimeout(() => setMsg(null), 4000);
-      } else if (r.status === 429) {
-        setMsg(`아직 쿨다운 · 약 ${Math.max(1, Math.ceil((j.remainingSec ?? 0) / 60))}분 후`);
-        await loadStatus();
-        setTimeout(() => setMsg(null), 4000);
+        setMsg("이미 수집 중입니다. 끝나면 다시 눌러 주세요.");
       } else {
         setMsg("새로고침 실패");
-        setTimeout(() => setMsg(null), 4000);
       }
     } catch {
       setMsg("새로고침 실패");
-      setTimeout(() => setMsg(null), 4000);
     } finally {
       setBusy(false);
     }
   };
 
   const lastLabel =
-    last == null ? "" : elapsedMin === 0 ? "방금 전 갱신됨" : `${elapsedMin}분 전 갱신됨`;
+    elapsedMin == null ? "" : elapsedMin === 0 ? "방금 전 갱신됨" : `${elapsedMin}분 전 갱신됨`;
+  const staleCount = st?.staleSources.length ?? 0;
+  const statusLabel = [lastLabel, staleCount ? `${staleCount}개 출처 갱신 지연` : ""].filter(Boolean).join(" · ");
 
   return (
     <div className="refresh">
-      <button className="refresh-btn" onClick={onClick} disabled={busy || !canRefresh}>
-        {busy ? "⏳ 수집 중…" : canRefresh ? "🔄 지금 새로고침" : `🔄 ${remainingMin}분 후 가능`}
+      <button type="button" className="refresh-btn" onClick={onClick} disabled={busy}>
+        {busy ? "⏳ 수집 중…" : "🔄 지금 새로고침"}
       </button>
-      <span className="refresh-meta">{msg ?? (st?.staleSources.length ? `${lastLabel} · ${st.staleSources.length}개 출처 갱신 지연` : lastLabel)}</span>
+      <span className="refresh-meta" role="status">{busy ? "수집 중…" : msg ?? statusLabel}</span>
     </div>
   );
 }
