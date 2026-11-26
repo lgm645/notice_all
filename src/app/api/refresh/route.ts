@@ -5,7 +5,12 @@ import { SOURCES } from "../../../sources/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // 동시 수집은 보통 ~10초지만 여유 있게
+export const maxDuration = 60;
+
+// 최근 자동 수집 로그에서 필요한 범위는 출처당 2~4페이지였다.
+// 페이지가 더 필요한 경우에는 기존 예약 수집이 이어서 확인한다.
+const MANUAL_MAX_PAGES = 4;
+const MANUAL_BUDGET_MS = 44_000;
 
 // 상태 조회 — 마지막 갱신 시각과 지연된 출처 표시에 사용.
 export async function GET() {
@@ -32,7 +37,12 @@ export async function GET() {
 // 수동 새로고침 — 진행 중인 수집이 없으면 바로 수집하고 캐시를 무효화.
 export async function POST() {
   try {
-    const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape({ concurrent: true, quick:true, maxPages:2, budgetMs:44_000 });
+    const { results, totalNew, rejectedFutureDates, repairedDates } = await runScrape({
+      concurrent: true,
+      quick: true,
+      maxPages: MANUAL_MAX_PAGES,
+      budgetMs: MANUAL_BUDGET_MS,
+    });
     revalidateTag("notices", { expire: 0 }); // Route Handler에서 즉시 만료 → 새 데이터 바로 반영
     const ok = results.filter((r) => !r.error).length;
     return Response.json({
